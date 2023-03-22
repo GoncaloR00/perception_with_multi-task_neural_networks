@@ -47,6 +47,6 @@ def transforms(image, cuda, device):
 
     # original_img_size = (720,1280)
     original_img_size = (img0.shape[0],img0.shape[1])
-    print(img0.shape)
+    # print(img0.shape)
     model_img_size = (384, 640)
     return img, original_img_size, model_img_size

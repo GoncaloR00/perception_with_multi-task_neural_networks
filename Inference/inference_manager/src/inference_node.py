@@ -43,10 +43,10 @@ class InferenceNode:
         detect2d_msg = detect2d()
         coords = []
         strings = []
-        string = String()
-        coord = BBox()
         for k, i in enumerate(det2d_list):
+            string = String()
             string.data = det2d_class_list[k]
+            coord = BBox()
             coord.Px1 = i[0][0]
             coord.Py1 = i[0][1]
             coord.Px2 = i[1][0]
@@ -61,6 +61,7 @@ class InferenceNode:
         for k, mask in enumerate(seg_list):
             image_message = self.bridge.cv2_to_imgmsg(mask, encoding="mono8")
             mask_msg.append(image_message)
+            string = String()
             string.data = seg_classes[k]
             strings.append(string)
 

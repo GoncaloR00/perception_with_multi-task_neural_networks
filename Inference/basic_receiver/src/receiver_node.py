@@ -37,9 +37,15 @@ if __name__ == '__main__':
         if not(teste.original_image is None) and not(teste.BBox_list is None) and not(teste.drivable_area is None) and not(teste.lanes is None):
             image = teste.original_image
             image = copy.copy(image)
-
             image[:,:,2][teste.drivable_area !=0] = 255
             image[:,:,0][teste.lanes !=0] = 255
+            count = 0
+            for bbox in teste.BBox_list:
+                c1 = (bbox.Px1, bbox.Py1)
+                c2 = (bbox.Px2, bbox.Py2)
+                # count += 1
+                # print(f"rectangle {count}, coord {c1}")
+                image = cv2.rectangle(image, c1, c2, [0,255,255], thickness=2, lineType=cv2.LINE_AA)
             cv2.imshow('teste', image)
             cv2.waitKey(1)
     # rospy.spin()
