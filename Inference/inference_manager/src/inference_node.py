@@ -1,28 +1,23 @@
 #!/usr/bin/python3
 from inference_class import Inference
-import cv2
 import rospy
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from inference_manager.msg import detect2d, segmentation, BBox
-# from geometry_msgs.msg import Quaternion
 from std_msgs.msg import String
+import argparse
 
-# import argparse
-
-
-# TODO ARGPARSE
 
 class InferenceNode:
-    def __init__(self):
+    def __init__(self, infer_function_name:str, model_path:str):
         # ---------------------------------------------------
         #   Model and inference module
         # ---------------------------------------------------
 
         # The inference module must have a output_organizer and a transforms 
         # function and be in the inference_modules folder
-        infer_function_name = 'yolopv2_module'
-        model_path = '../../../models/yolopv2.pt'
+        # infer_function_name = 'yolopv2_module'
+        # model_path = '../../../models/yolopv2.pt'
         self.inference = Inference(model_path, infer_function_name)
 
         # ---------------------------------------------------
@@ -76,6 +71,19 @@ class InferenceNode:
 
 
 if __name__ == '__main__':
-    teste = InferenceNode()
+    parser = argparse.ArgumentParser(
+                            prog = 'inference_node',
+                            description='This node receives an image as input and\
+                            outputs the result of the inference')
+    
+    parser.add_argument('-fn', '--function_name', type=str, 
+                        dest='infer_function', required=True, 
+                        help='Name of the module with the output_organizer and transforms functions')
+    
+    parser.add_argument('-mp', '--model_path', type=str, 
+                        dest='model_path', required=True, 
+                        help='Model directory')
+    args = parser.parse_args()
+    teste = InferenceNode(infer_function_name = args.infer_function, model_path = args.model_path)
     rospy.init_node('receiver', anonymous=True)
     rospy.spin()
