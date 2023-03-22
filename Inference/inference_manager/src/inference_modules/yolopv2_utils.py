@@ -177,20 +177,24 @@ def non_max_suppression(prediction, conf_thres=0.25, iou_thres=0.45, classes=Non
 
     return output
 
-def driving_area_mask(seg = None):
+def driving_area_mask(original_img_size, seg = None):
     da_predict = seg[:, :, 12:372,:]
-    da_seg_mask = torch.nn.functional.interpolate(da_predict, scale_factor=2, mode='bilinear')
+    da_seg_mask = da_predict
+    # da_seg_mask = torch.nn.functional.interpolate(da_predict, scale_factor=2, mode='bilinear')
     _, da_seg_mask = torch.max(da_seg_mask, 1)
     da_seg_mask = da_seg_mask.int().squeeze().cpu().numpy()
     da_seg_mask = seg_tensor2np(da_seg_mask)
+    da_seg_mask=cv2.resize(da_seg_mask, (original_img_size[1], original_img_size[0]), interpolation=cv2.INTER_LINEAR)
     return da_seg_mask
 
-def lane_line_mask(ll = None):
+def lane_line_mask(original_img_size, ll = None):
     ll_predict = ll[:, :, 12:372,:]
-    ll_seg_mask = torch.nn.functional.interpolate(ll_predict, scale_factor=2, mode='bilinear')
+    ll_seg_mask = ll_predict
+    # ll_seg_mask = torch.nn.functional.interpolate(ll_predict, scale_factor=2, mode='bilinear')
     ll_seg_mask = torch.round(ll_seg_mask).squeeze(1)
     ll_seg_mask = ll_seg_mask.int().squeeze().cpu().numpy()
     ll_seg_mask = seg_tensor2np(ll_seg_mask)
+    ll_seg_mask=cv2.resize(ll_seg_mask, (original_img_size[1], original_img_size[0]), interpolation=cv2.INTER_LINEAR)
     return ll_seg_mask
 
 def pred2bbox(pred, original_img_size, model_img_size, original_class_list):

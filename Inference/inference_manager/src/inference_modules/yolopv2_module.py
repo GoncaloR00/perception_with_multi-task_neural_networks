@@ -20,9 +20,9 @@ def output_organizer(original_output, original_img_size, model_img_size):
     [pred,anchor_grid],seg,ll = original_output
     pred = split_for_trace_model(pred,anchor_grid)
     pred = non_max_suppression(pred)
-    da_seg_mask = driving_area_mask(seg)
+    da_seg_mask = driving_area_mask(original_img_size, seg)
     da_seg_mask = cv2.cvtColor(da_seg_mask, cv2.COLOR_BGR2GRAY)
-    ll_seg_mask = lane_line_mask(ll)
+    ll_seg_mask = lane_line_mask(original_img_size, ll)
     ll_seg_mask = cv2.cvtColor(ll_seg_mask, cv2.COLOR_BGR2GRAY)
     det2d_class_list, det2d_list = pred2bbox(pred, original_img_size, model_img_size, det_classes)
     seg_list = [da_seg_mask, ll_seg_mask]
@@ -32,7 +32,7 @@ def transforms(image, cuda, device):
     img_size = 640
     stride = 32
     img0 = image
-    img0 = cv2.resize(img0, (1280,720), interpolation=cv2.INTER_LINEAR)
+    # img0 = cv2.resize(img0, (1280,720), interpolation=cv2.INTER_LINEAR)
     img = letterbox(img0, img_size, stride=stride)[0]
     img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
     img = np.ascontiguousarray(img)
@@ -45,6 +45,8 @@ def transforms(image, cuda, device):
     if img.ndimension() == 3:
         img = img.unsqueeze(0)
 
-    original_img_size = (720,1280)
+    # original_img_size = (720,1280)
+    original_img_size = (img0.shape[0],img0.shape[1])
+    print(img0.shape)
     model_img_size = (384, 640)
     return img, original_img_size, model_img_size
