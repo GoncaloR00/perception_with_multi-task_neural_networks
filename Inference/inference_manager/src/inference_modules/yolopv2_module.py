@@ -21,7 +21,9 @@ def output_organizer(original_output, original_img_size, model_img_size):
     pred = split_for_trace_model(pred,anchor_grid)
     pred = non_max_suppression(pred)
     da_seg_mask = driving_area_mask(seg)
+    da_seg_mask = cv2.cvtColor(da_seg_mask, cv2.COLOR_BGR2GRAY)
     ll_seg_mask = lane_line_mask(ll)
+    ll_seg_mask = cv2.cvtColor(ll_seg_mask, cv2.COLOR_BGR2GRAY)
     det2d_class_list, det2d_list = pred2bbox(pred, original_img_size, model_img_size, det_classes)
     seg_list = [da_seg_mask, ll_seg_mask]
     return (det2d_class_list, det2d_list), (seg_classes, seg_list)
