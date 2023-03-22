@@ -39,39 +39,40 @@ class InferenceNode:
     def InferenceCallback(self,msg):
         image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
         self.inference.load_image(image)
-        (det2d_class_list, det2d_list), (seg_classes, seg_list) = self.inference.infer()
-        detect2d_msg = detect2d()
-        coords = []
-        strings = []
-        for k, i in enumerate(det2d_list):
-            string = String()
-            string.data = det2d_class_list[k]
-            coord = BBox()
-            coord.Px1 = i[0][0]
-            coord.Py1 = i[0][1]
-            coord.Px2 = i[1][0]
-            coord.Py2 = i[1][1]
-            coords.append(coord)
-            strings.append(string)
-        detect2d_msg.BBoxList = coords
-        detect2d_msg.ClassList = strings
-        segmentation_msg = segmentation()
-        mask_msg = []
-        strings = []
-        for k, mask in enumerate(seg_list):
-            image_message = self.bridge.cv2_to_imgmsg(mask, encoding="mono8")
-            mask_msg.append(image_message)
-            string = String()
-            string.data = seg_classes[k]
-            strings.append(string)
+        detections_2d, segmentations = self.inference.infer()
+        if not(detections_2d is None):
+            (det2d_class_list, det2d_list) = detections_2d
+            detect2d_msg = detect2d()
+            coords = []
+            strings = []
+            for k, i in enumerate(det2d_list):
+                string = String()
+                string.data = det2d_class_list[k]
+                coord = BBox()
+                coord.Px1 = i[0][0]
+                coord.Py1 = i[0][1]
+                coord.Px2 = i[1][0]
+                coord.Py2 = i[1][1]
+                coords.append(coord)
+                strings.append(string)
+            detect2d_msg.BBoxList = coords
+            detect2d_msg.ClassList = strings
+            self.detection2d_pub.publish(detect2d_msg)
+        if not(segmentations is None):
+            (seg_classes, seg_list) = segmentations
+            segmentation_msg = segmentation()
+            mask_msg = []
+            strings = []
+            for k, mask in enumerate(seg_list):
+                image_message = self.bridge.cv2_to_imgmsg(mask, encoding="mono8")
+                mask_msg.append(image_message)
+                string = String()
+                string.data = seg_classes[k]
+                strings.append(string)
 
-        segmentation_msg.ClassList = strings
-        segmentation_msg.MaskList = mask_msg
-        self.detection2d_pub.publish(detect2d_msg)
-
-        self.segmentation_pub.publish(segmentation_msg)
-        # cv2.imshow('teste', seg_list[0])
-        # cv2.waitKey(1)
+            segmentation_msg.ClassList = strings
+            segmentation_msg.MaskList = mask_msg
+            self.segmentation_pub.publish(segmentation_msg)
 
 
 if __name__ == '__main__':
