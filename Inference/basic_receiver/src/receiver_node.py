@@ -18,12 +18,14 @@ class BasicReceiver:
         self.bridge = CvBridge()
         self.original_image = None
         self.BBox_list = None
+        self.BBox_classes = None
         self.drivable_area = None
         self.lanes = None
     def inputCallback(self, msg):
         self.original_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
     def detection2dCallback(self, msg):
-        self.BBox_list = msg.BBoxList
+        self.BBoxes = msg
+        # self.BBox_classes = msg.ClassList
     def segmentationCallback(self, msg):
         self.drivable_area = self.bridge.imgmsg_to_cv2(msg.MaskList[0], desired_encoding='passthrough')
         self.lanes = self.bridge.imgmsg_to_cv2(msg.MaskList[1], desired_encoding='passthrough')
@@ -38,10 +40,21 @@ if __name__ == '__main__':
                 image[:,:,2][teste.drivable_area !=0] = 255
             if not(teste.lanes is None):
                 image[:,:,0][teste.lanes !=0] = 255
-            if not(teste.BBox_list is None):
-                for bbox in teste.BBox_list:
+            if not(teste.BBoxes is None):
+                bboxes = teste.BBoxes
+                bbox_list = bboxes.BBoxList
+                bbox_classes = bboxes.ClassList
+                fontFace=cv2.FONT_HERSHEY_COMPLEX
+                thickness= 1
+                fontScale=0.5
+                for idx, bbox in enumerate(bbox_list):
                     c1 = (bbox.Px1, bbox.Py1)
                     c2 = (bbox.Px2, bbox.Py2)
                     image = cv2.rectangle(image, c1, c2, [0,255,255], thickness=2, lineType=cv2.LINE_AA)
+                    top_center = [int((c1[0]+c2[0])/2), c1[1]]
+                    text = bbox_classes[idx].data
+                    label_size = cv2.getTextSize(text=text, fontFace=fontFace, thickness=thickness, fontScale=fontScale)
+                    org = (top_center[0]-int(label_size[0][0]/2),top_center[1]-int(label_size[0][1]/2))
+                    image = cv2.putText(image, text=text, org=org, fontFace=fontFace, thickness=thickness, fontScale=fontScale, color=(0,255,255))
             cv2.imshow('teste', image)
             cv2.waitKey(1)
