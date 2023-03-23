@@ -1,0 +1,11 @@
+<launch>
+    <arg name="fn" default="yolopv2_module"/>
+    <arg name="mp" default="/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/models/yolopv2.pt"/>
+    <arg name="sr" default="cameras/frontcamera"/>
+
+    <group ns='yolop/frontcamera'>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn) -mp $(arg mp) -sr $(arg sr)"/>
+    </group>
+
+
+</launch>

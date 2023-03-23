@@ -6,10 +6,11 @@ from sensor_msgs.msg import Image
 from inference_manager.msg import detect2d, segmentation, BBox
 from std_msgs.msg import String
 import argparse
+import sys
 
 
 class InferenceNode:
-    def __init__(self, infer_function_name:str, model_path:str):
+    def __init__(self, infer_function_name:str, model_path:str, source:str):
         # ---------------------------------------------------
         #   Model and inference module
         # ---------------------------------------------------
@@ -20,12 +21,9 @@ class InferenceNode:
         # model_path = '../../../models/yolopv2.pt'
         self.inference = Inference(model_path, infer_function_name)
 
-        # ---------------------------------------------------
-        #   ROS
-        # ---------------------------------------------------
-        topic_input = '/inference/stream'
-        topic_detection2d = 'inference/detection2d'
-        topic_segmentation = 'inference/segmentation'
+        topic_input = '/cameras/frontcamera'
+        topic_detection2d = 'detection2d'
+        topic_segmentation = 'segmentation'
         subscriber_stream = rospy.Subscriber(topic_input, Image, self.InferenceCallback)
         self.detection2d_pub = rospy.Publisher(topic_detection2d,detect2d, queue_size=10)
         self.segmentation_pub = rospy.Publisher(topic_segmentation,segmentation, queue_size=10)
@@ -78,12 +76,24 @@ if __name__ == '__main__':
     
     parser.add_argument('-fn', '--function_name', type=str, 
                         dest='infer_function', required=True, 
-                        help='Name of the module with the output_organizer and transforms functions')
+                        help='Name of the module with the output_organizer and \
+                            transforms functions')
     
     parser.add_argument('-mp', '--model_path', type=str, 
                         dest='model_path', required=True, 
                         help='Model directory')
-    args = parser.parse_args()
-    teste = InferenceNode(infer_function_name = args.infer_function, model_path = args.model_path)
-    rospy.init_node('receiver', anonymous=True)
+    
+    parser.add_argument('-sr', '--source', type=str, 
+                        dest='source', required=True, 
+                        help='Topic with the image messages to process')
+    arglist = [x for x in sys.argv[1:] if not x.startswith('__')]
+    args = vars(parser.parse_args(args=arglist))
+    # model_name = args['model_path'].split('/')[-1].split('.')[0]
+    # source_name = args['source'].split('/')[-1]
+    teste = InferenceNode(infer_function_name = args['infer_function'], 
+                          model_path = args['model_path'], 
+                          source = args['source']
+                          )
+    rospy.init_node('inference_node', anonymous=False)
+    print(rospy.get_namespace())
     rospy.spin()
