@@ -4,7 +4,8 @@
     <arg name="sr" default="cameras/frontcamera"/>
 
     <group ns='yolop/frontcamera'>
-        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn) -mp $(arg mp) -sr $(arg sr)"/>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn) -mp $(arg mp) -sr $(arg sr)"/>
     </group>
 
 

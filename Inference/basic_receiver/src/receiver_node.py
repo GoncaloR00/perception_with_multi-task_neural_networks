@@ -9,16 +9,15 @@ import copy
 
 class BasicReceiver:
     def __init__(self):
-        topic_input = 'inference/stream'
-        topic_detection2d = 'inference/detection2d'
-        topic_segmentation = 'inference/segmentation'
+        topic_input = '/cameras/frontcamera'
+        topic_detection2d = 'detection2d'
+        topic_segmentation = 'segmentation'
         self.subscriber_input = rospy.Subscriber(topic_input, Image, self.inputCallback)
         self.subscriber_detection2d = rospy.Subscriber(topic_detection2d, detect2d, self.detection2dCallback)
         self.subscriber_segmentation = rospy.Subscriber(topic_segmentation, segmentation, self.segmentationCallback)
         self.bridge = CvBridge()
         self.original_image = None
-        self.BBox_list = None
-        self.BBox_classes = None
+        self.BBoxes = None
         self.drivable_area = None
         self.lanes = None
     def inputCallback(self, msg):
