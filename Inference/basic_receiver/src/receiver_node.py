@@ -31,7 +31,7 @@ class BasicReceiver:
 if __name__ == '__main__':
     teste = BasicReceiver()
     rospy.init_node('image_plotter', anonymous=True)
-    while True:
+    while not rospy.is_shutdown():
         if not(teste.original_image is None):
             image = teste.original_image
             image = copy.copy(image)
@@ -57,3 +57,4 @@ if __name__ == '__main__':
                     image = cv2.putText(image, text=text, org=org, fontFace=fontFace, thickness=thickness, fontScale=fontScale, color=(0,255,255))
             cv2.imshow('teste', image)
             cv2.waitKey(1)
+    cv2.destroyAllWindows()
