@@ -21,10 +21,10 @@ class InferenceNode:
         # model_path = '../../../models/yolopv2.pt'
         self.inference = Inference(model_path, infer_function_name)
 
-        topic_input = '/cameras/frontcamera'
+        # topic_input = '/cameras/frontcamera'
         topic_detection2d = 'detection2d'
         topic_segmentation = 'segmentation'
-        subscriber_stream = rospy.Subscriber(topic_input, Image, self.InferenceCallback)
+        subscriber_stream = rospy.Subscriber(source, Image, self.InferenceCallback)
         self.detection2d_pub = rospy.Publisher(topic_detection2d,detect2d, queue_size=10)
         self.segmentation_pub = rospy.Publisher(topic_segmentation,segmentation, queue_size=10)
         self.bridge = CvBridge()
@@ -95,5 +95,4 @@ if __name__ == '__main__':
                           source = args['source']
                           )
     rospy.init_node('inference_node', anonymous=False)
-    print(rospy.get_namespace())
     rospy.spin()

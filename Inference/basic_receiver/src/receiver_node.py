@@ -31,6 +31,8 @@ class BasicReceiver:
 if __name__ == '__main__':
     teste = BasicReceiver()
     rospy.init_node('image_plotter', anonymous=True)
+    namespace = rospy.get_namespace()
+    window_name = f"Camera: {namespace.split('/')[-3]}  |  Model: {namespace.split('/')[-2]}"
     while not rospy.is_shutdown():
         if not(teste.original_image is None):
             image = teste.original_image
@@ -55,6 +57,6 @@ if __name__ == '__main__':
                     label_size = cv2.getTextSize(text=text, fontFace=fontFace, thickness=thickness, fontScale=fontScale)
                     org = (top_center[0]-int(label_size[0][0]/2),top_center[1]-int(label_size[0][1]/2))
                     image = cv2.putText(image, text=text, org=org, fontFace=fontFace, thickness=thickness, fontScale=fontScale, color=(0,255,255))
-            cv2.imshow('teste', image)
+            cv2.imshow(window_name, image)
             cv2.waitKey(1)
     cv2.destroyAllWindows()
