@@ -6,9 +6,6 @@ import numpy as np
 import cv2
 
 # Internal Utils
-def _make_grid(nx=20, ny=20):
-        yv, xv = torch.meshgrid([torch.arange(ny), torch.arange(nx)])
-        return torch.stack((xv, yv), 2).view((1, 1, ny, nx, 2)).float()
 
 def xywh2xyxy(x):
     # Convert nx4 boxes from [x, y, w, h] to [x1, y1, x2, y2] where xy1=top-left, xy2=bottom-right
@@ -43,11 +40,6 @@ def box_iou(box1, box2):
     inter = (torch.min(box1[:, None, 2:], box2[:, 2:]) - torch.max(box1[:, None, :2], box2[:, :2])).clamp(0).prod(2)
     return inter / (area1[:, None] + area2 - inter)  # iou = inter / (area1 + area2 - inter)
 
-
-def seg_tensor2np(mask_tensor):
-    mask_np = np.zeros((mask_tensor.shape[0],mask_tensor.shape[1],3), dtype=np.uint8)
-    mask_np[mask_tensor == 1] = 255
-    return mask_np
 
 def scale_coords(img1_shape, coords, img0_shape, ratio_pad=None):
     # Rescale coords (xyxy) from img1_shape to img0_shape
@@ -186,26 +178,6 @@ def non_max_suppression(
 
     return output
 
-def driving_area_mask(original_img_size, seg = None):
-    da_predict = seg[:, :, 12:372,:]
-    da_seg_mask = da_predict
-    # da_seg_mask = torch.nn.functional.interpolate(da_predict, scale_factor=2, mode='bilinear')
-    _, da_seg_mask = torch.max(da_seg_mask, 1)
-    da_seg_mask = da_seg_mask.int().squeeze().cpu().numpy()
-    da_seg_mask = seg_tensor2np(da_seg_mask)
-    da_seg_mask=cv2.resize(da_seg_mask, (original_img_size[1], original_img_size[0]), interpolation=cv2.INTER_LINEAR)
-    return da_seg_mask
-
-def lane_line_mask(original_img_size, ll = None):
-    ll_predict = ll[:, :, 12:372,:]
-    ll_seg_mask = ll_predict
-    # ll_seg_mask = torch.nn.functional.interpolate(ll_predict, scale_factor=2, mode='bilinear')
-    ll_seg_mask = torch.round(ll_seg_mask).squeeze(1)
-    ll_seg_mask = ll_seg_mask.int().squeeze().cpu().numpy()
-    ll_seg_mask = seg_tensor2np(ll_seg_mask)
-    ll_seg_mask=cv2.resize(ll_seg_mask, (original_img_size[1], original_img_size[0]), interpolation=cv2.INTER_LINEAR)
-    return ll_seg_mask
-
 def pred2bbox(pred, original_img_size, model_img_size, original_class_list):
     class_list = []
     det_list = []
@@ -216,37 +188,5 @@ def pred2bbox(pred, original_img_size, model_img_size, original_class_list):
             for *xyxy, conf, cls in reversed(det):# Add bbox to image
                 coords = [(int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))]
                 det_list.append(coords)
-                class_list.append(original_class_list[i])
+                class_list.append(original_class_list[int(cls)])
     return class_list, det_list
-
-def letterbox(im, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):
-    # Resize and pad image while meeting stride-multiple constraints
-    shape = im.shape[:2]  # current shape [height, width]
-    if isinstance(new_shape, int):
-        new_shape = (new_shape, new_shape)
-
-    # Scale ratio (new / old)
-    r = min(new_shape[0] / shape[0], new_shape[1] / shape[1])
-    if not scaleup:  # only scale down, do not scale up (for better val mAP)
-        r = min(r, 1.0)
-
-    # Compute padding
-    ratio = r, r  # width, height ratios
-    new_unpad = int(round(shape[1] * r)), int(round(shape[0] * r))
-    dw, dh = new_shape[1] - new_unpad[0], new_shape[0] - new_unpad[1]  # wh padding
-    if auto:  # minimum rectangle
-        dw, dh = np.mod(dw, stride), np.mod(dh, stride)  # wh padding
-    elif scaleFill:  # stretch
-        dw, dh = 0.0, 0.0
-        new_unpad = (new_shape[1], new_shape[0])
-        ratio = new_shape[1] / shape[1], new_shape[0] / shape[0]  # width, height ratios
-
-    dw /= 2  # divide padding into 2 sides
-    dh /= 2
-
-    if shape[::-1] != new_unpad:  # resize
-        im = cv2.resize(im, new_unpad, interpolation=cv2.INTER_LINEAR)
-    top, bottom = int(round(dh - 0.1)), int(round(dh + 0.1))
-    left, right = int(round(dw - 0.1)), int(round(dw + 0.1))
-    im = cv2.copyMakeBorder(im, top, bottom, left, right, cv2.BORDER_CONSTANT, value=color)  # add border
-    return im, ratio, (dw, dh)

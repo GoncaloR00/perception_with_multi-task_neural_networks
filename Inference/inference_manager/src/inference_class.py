@@ -12,14 +12,14 @@ class Inference:
         #     exit()
         # Check if CUDA is available
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        if self.device == 'cpu':
+            print('\033[1;31;48m' + "CUDA NOT DETECTED! Aborting..." + '\033[1;37;0m')
+            exit()
         self.cuda = self.device == "cuda"
         print(f"Using device: {self.device}")
         # Load model - TODO allow more formats
         self.model = torch.jit.load(model_path)
         self.model.to(self.device)
-        # self.model.cuda()
-        # print(f"Is cuda? {next(self.model.parameters()).is_cuda}")
-        # print(self.model)
 
         if self.cuda:
             self.model.half()

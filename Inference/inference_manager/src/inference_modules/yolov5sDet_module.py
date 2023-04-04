@@ -2,11 +2,21 @@
 # Adapted from https://github.com/CAIC-AD/YOLOPv2/blob/main/demo.py
 
 from .yolov5det_utils import non_max_suppression, \
-                          pred2bbox, \
-                          letterbox
+                          pred2bbox
 import numpy as np
 import torch
 import cv2
+
+import yaml
+from yaml.loader import SafeLoader
+from pathlib import Path
+mod_path = Path(__file__).parent
+
+det_classes = []
+with open(mod_path / 'coco.yaml') as f:
+    data = yaml.load(f, Loader=SafeLoader)
+    for name in data['names']:
+        det_classes.append(data['names'][name])
 
 # image dimensions in the format (height, width)
 
@@ -35,16 +45,10 @@ def output_organizer(original_output, original_img_size, model_img_size):
         -To convert from numpy to the desired framework, check the framework 
     documentation"""
     
-    # Classes lists
-    det_classes = ["person", "bicycle", "car", "motorcycle", "airplane", "bus"]
+    
 
     # Separate variables in the output of the inference
     pred = original_output
-    # print(f"pred: {pred}")
-    # pred = pred.numpy()
-
-    # Based in https://github.com/CAIC-AD/YOLOPv2/blob/main/demo.py, perform all
-    # operations needed to get the desired variables format
     pred = non_max_suppression(pred)
     det2d_class_list, det2d_list = pred2bbox(pred, original_img_size, model_img_size, det_classes)
     segmentations = None
