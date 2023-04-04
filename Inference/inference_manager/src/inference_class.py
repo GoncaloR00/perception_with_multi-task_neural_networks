@@ -12,12 +12,9 @@ class Inference:
         #     exit()
         # Check if CUDA is available
         self.device = "cuda" if torch.cuda.is_available() else "cpu"
-        # self.device = "cpu"
-        # self.device="cpu"
         self.cuda = self.device == "cuda"
         print(f"Using device: {self.device}")
-        # Load model file (pt or pth file)
-        # self.model = torch.load(model_path)
+        # Load model - TODO allow more formats
         self.model = torch.jit.load(model_path)
         self.model.to(self.device)
         # self.model.cuda()
@@ -36,13 +33,7 @@ class Inference:
 
 
     def infer(self):
-        # print(self.model.device)
-        # print(self.transformed_image)
-        # print(f"Is cuda? {next(self.model.parameters()).is_cuda}")
-
         with torch.no_grad():
-            # print(self.model)
-            # self.model.to(self.device)
             outputs = self.model(self.transformed_image)
         organized_outputs = self.output_function.output_organizer(outputs, self.original_img_size, self.model_img_size)
         return organized_outputs

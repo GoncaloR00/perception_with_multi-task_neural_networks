@@ -8,6 +8,7 @@ import numpy as np
 import torch
 import cv2
 
+# image dimensions in the format (height, width)
 
 def output_organizer(original_output, original_img_size, model_img_size):
     """This function receives the output from the inference and organizes the
@@ -61,37 +62,17 @@ def transforms(image, cuda:bool, device):
         cuda: Boolean value of available cuda - handled by inference_class
         device: Device name (cpu/cuda/cuda1, etc) - handled by inference_class"""
     
-    # img_size = 640
-    # stride = 32
-    # img0 = image
-    # img = letterbox(img0, img_size, stride=stride)[0]
-    # img = img.transpose((2, 0, 1))[::-1]
-    # # img = img[:, :, ::-1].transpose(2, 0, 1)  # BGR to RGB, to 3x416x416
-    # img = np.ascontiguousarray(img)
-
-    # img = torch.from_numpy(img).to(device)
-    # img = img.half() if cuda else img.float()  # uint8 to fp16/32
-    # img /= 255.0  # 0 - 255 to 0.0 - 1.0
-    # if len(img.shape) == 3:
-    #     img = img[None]  # expand for batch dim
-
-    # # if img.ndimension() == 3:
-    # #     img = img.unsqueeze(0)
     original_img_size = (image.shape[0],image.shape[1])
-    stride = 32
-    model_img_size = (stride*20, stride*20)
+    model_img_size = (384, 640)
     img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-    img = cv2.resize(img, model_img_size)
+    img = cv2.resize(img, (model_img_size[1], model_img_size[0]))
     img = np.ascontiguousarray(img, dtype=np.float32)
     img = np.transpose(img / 255.0, [2, 0, 1])
-    # _dtype = torch.float16 if cuda else torch.float32
     img = torch.from_numpy(img).to(device)
     if len(img.shape) == 3:
-        img = img[None]  # expand for batch dim
+        img = img[None]
     img.permute(0, 2, 3, 1) 
     img = img.to(device)
     img = img.half()
-    # print(f"device: {device}")
-    # print(f"size: {img.shape}")
 
     return img, original_img_size, model_img_size
