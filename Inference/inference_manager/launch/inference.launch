@@ -26,7 +26,7 @@
 
     <group ns='frontcamera/yolov5'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
-        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn yolov5sDet_module -mp /home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/models/yolov5s.torchscript -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
     </group>
 
 
