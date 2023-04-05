@@ -10,7 +10,16 @@ from .yolopv2_utils import split_for_trace_model, \
 import numpy as np
 import torch
 import cv2
+import yaml
+from yaml.loader import SafeLoader
+from pathlib import Path
+mod_path = Path(__file__).parent
 
+det_classes = []
+with open(mod_path / 'bdd100k.yaml') as f:
+    data = yaml.load(f, Loader=SafeLoader)
+    for name in data['names']:
+        det_classes.append(data['names'][name])
 
 def output_organizer(original_output, original_img_size, model_img_size):
     """This function receives the output from the inference and organizes the
@@ -38,7 +47,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
     documentation"""
     
     # Classes lists
-    det_classes = ["car"]
+    # det_classes = ["car"]
     seg_classes = ["drivable_area", "lane_lines"]
 
     # Separate variables in the output of the inference
