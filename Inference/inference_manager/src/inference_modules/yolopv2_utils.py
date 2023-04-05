@@ -207,7 +207,7 @@ def pred2bbox(pred, original_img_size, model_img_size, original_class_list):
             for *xyxy, conf, cls in reversed(det):# Add bbox to image
                 coords = [(int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))]
                 det_list.append(coords)
-                class_list.append(original_class_list[int(cls)-1]) # BDD100k starts at 1 and python lists at 0
+                class_list.append(original_class_list[int(cls)-1]) # BDD100k starts at 1 and python lists at 0 -> https://doc.bdd100k.com/format.html
     return class_list, det_list
 
 def letterbox(img, new_shape=(640, 640), color=(114, 114, 114), auto=True, scaleFill=False, scaleup=True, stride=32):
