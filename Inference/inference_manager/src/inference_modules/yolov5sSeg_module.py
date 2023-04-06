@@ -47,10 +47,6 @@ def output_organizer(original_output, original_img_size, model_img_size):
     
 
     # Separate variables in the output of the inference
-    # pred = original_output
-    # pred = non_max_suppression(pred)
-    # det2d_class_list, det2d_list = pred2bbox(pred, original_img_size, model_img_size, det_classes)
-
     pred, protos = original_output[:2]
     pred = non_max_suppression(pred, nm=32)
     for i, det in enumerate(pred):
@@ -58,28 +54,17 @@ def output_organizer(original_output, original_img_size, model_img_size):
             c, mh, mw = protos[i].shape
             masks = (det[:, 6:] @ protos[i].float().view(c, -1)).sigmoid().view(-1, mh, mw)
             masks = masks.cpu().numpy()
+            seg_list = []
+            seg_classes = []
             for idx, x in enumerate(det[:, 5]):
-                print(det_classes[int(x)])
-                image_to_see = cv2.cvtColor(masks[idx], cv2.COLOR_GRAY2BGR)
-                cv2.imshow('novo teste',image_to_see)
-                cv2.waitKey(0)
-            # print(masks)
-    
-    # for mask in premask:
-        # cv2.imshow('teste', mask.numpy)
-        # print(mask.shape)
-    # pred = split_for_trace_model(pred,anchor_grid)
-    # pred = non_max_suppression(pred)
-    # da_seg_mask = driving_area_mask(original_img_size, seg)
-    # da_seg_mask = cv2.cvtColor(da_seg_mask, cv2.COLOR_BGR2GRAY)
-    # ll_seg_mask = lane_line_mask(original_img_size, ll)
-    # ll_seg_mask = cv2.cvtColor(ll_seg_mask, cv2.COLOR_BGR2GRAY)
-    # det2d_class_list, det2d_list = pred2bbox(pred, original_img_size, model_img_size, det_classes)
-
-    # seg_list = [da_seg_mask, ll_seg_mask]
-    segmentations = None
-    # Returns of variables; If more outputs are needed, it is required to adapt 
-    # the inference_class script. If less, the unused variables should be =None
+                seg_classes.append(det_classes[int(x)])
+                mask = (masks[idx] * 255).astype('uint8')
+                mask = cv2.resize(mask, (original_img_size[1], original_img_size[0]))
+                seg_list.append(mask)
+    if len(seg_classes) == 0:
+        segmentations = None
+    else:
+        segmentations = (seg_classes, seg_list)
     detections = None
     return detections, segmentations
 

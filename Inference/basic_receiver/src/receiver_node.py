@@ -32,15 +32,18 @@ if __name__ == '__main__':
     teste = BasicReceiver()
     rospy.init_node('image_plotter', anonymous=True)
     namespace = rospy.get_namespace()
-    window_name = f"Camera: {namespace.split('/')[-3]}  |  Model: {namespace.split('/')[-2]}"
+    try:
+        window_name = f"Camera: {namespace.split('/')[-3]}  |  Model: {namespace.split('/')[-2]}"
+    except:
+        window_name = f"Camera: NO DATA  |  Model: NO DATA"
     while not rospy.is_shutdown():
         if not(teste.original_image is None):
             image = teste.original_image
             image = copy.copy(image)
             if not(teste.drivable_area is None):
-                image[:,:,2][teste.drivable_area !=0] = 255
+                image[:,:,2][teste.drivable_area >190] = 255
             if not(teste.lanes is None):
-                image[:,:,0][teste.lanes !=0] = 255
+                image[:,:,0][teste.lanes >190] = 255
             if not(teste.BBoxes is None):
                 bboxes = teste.BBoxes
                 bbox_list = bboxes.BBoxList
