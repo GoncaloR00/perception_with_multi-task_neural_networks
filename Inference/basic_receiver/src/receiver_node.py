@@ -5,6 +5,7 @@ from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
 from inference_manager.msg import detect2d, segmentation
 import copy
+import numpy as np
 
 
 class BasicReceiver:
@@ -26,8 +27,24 @@ class BasicReceiver:
         self.BBoxes = msg
         # self.BBox_classes = msg.ClassList
     def segmentationCallback(self, msg):
-        self.drivable_area = self.bridge.imgmsg_to_cv2(msg.MaskList[0], desired_encoding='passthrough')
-        self.lanes = self.bridge.imgmsg_to_cv2(msg.MaskList[1], desired_encoding='passthrough')
+        pedestrian = None
+        car = None
+        for idx, seg_class in enumerate(msg.ClassList):
+            if seg_class.data == "pedestrian" or seg_class.data == "person":
+                if pedestrian is None:
+                    pedestrian = self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')
+                else:
+                    pedestrian = np.maximum(pedestrian, self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+            if seg_class.data == "car":
+                if car is None:
+                    car = self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')
+                else:
+                    car = np.maximum(car, self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+
+        self.drivable_area = car
+        self.lanes = pedestrian
+        # self.drivable_area = self.bridge.imgmsg_to_cv2(msg.MaskList[0], desired_encoding='passthrough')
+        # self.lanes = self.bridge.imgmsg_to_cv2(msg.MaskList[1], desired_encoding='passthrough')
 if __name__ == '__main__':
     teste = BasicReceiver()
     rospy.init_node('image_plotter', anonymous=True)
@@ -41,9 +58,9 @@ if __name__ == '__main__':
             image = teste.original_image
             image = copy.copy(image)
             if not(teste.drivable_area is None):
-                image[:,:,2][teste.drivable_area >190] = 255
+                image[:,:,2][teste.drivable_area >200] = 255
             if not(teste.lanes is None):
-                image[:,:,0][teste.lanes >190] = 255
+                image[:,:,0][teste.lanes >200] = 255
             if not(teste.BBoxes is None):
                 bboxes = teste.BBoxes
                 bbox_list = bboxes.BBoxList

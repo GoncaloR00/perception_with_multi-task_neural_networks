@@ -8,10 +8,10 @@
     <arg name="front_camera" default="/cameras/frontcamera"/>
     <!-- YolopV2 -->
     <arg name="fn_yolopv2" default="yolopv2_module"/>
-    <arg name="mp_yolopv2" default="/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/models/yolopv2.pt"/>
+    <arg name="mp_yolopv2" default="$(find inference_manager)/../../models/yolopv2.pt"/>
     <!-- YoloV5 -->
     <arg name="fn_yolov5_det" default="yolov5sDet_module"/>
-    <arg name="mp_yolov5s_det" default="/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/models/yolov5s.torchscript"/>
+    <arg name="mp_yolov5s_det" default="$(find inference_manager)/../../models/yolov8s.torchscript"/>
 
 <!-- ####################################################################### -->
 <!-- ############################### Nodes ################################# -->
