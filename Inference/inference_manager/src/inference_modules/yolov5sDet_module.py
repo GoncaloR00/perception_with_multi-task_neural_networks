@@ -13,10 +13,10 @@ from pathlib import Path
 mod_path = Path(__file__).parent
 
 det_classes = []
-with open(mod_path / 'coco.yaml') as f:
+with open(mod_path / 'bdd100k.yaml') as f:
     data = yaml.load(f, Loader=SafeLoader)
-    for name in data['names']:
-        det_classes.append(data['names'][name])
+    for name in data['object detection']:
+        det_classes.append(data['object detection'][name])
 
 # image dimensions in the format (height, width)
 
@@ -67,8 +67,8 @@ def transforms(image, cuda:bool, device):
         device: Device name (cpu/cuda/cuda1, etc) - handled by inference_class"""
     
     original_img_size = (image.shape[0],image.shape[1])
-    # model_img_size = (384, 640)
-    model_img_size = (640, 640)
+    model_img_size = (384, 640)
+    # model_img_size = (640, 640)
     img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, (model_img_size[1], model_img_size[0]))
     img = np.ascontiguousarray(img, dtype=np.float32)

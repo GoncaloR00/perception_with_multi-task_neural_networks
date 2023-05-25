@@ -18,8 +18,8 @@ mod_path = Path(__file__).parent
 det_classes = []
 with open(mod_path / 'bdd100k.yaml') as f:
     data = yaml.load(f, Loader=SafeLoader)
-    for name in data['names']:
-        det_classes.append(data['names'][name])
+    for name in data['object detection']:
+        det_classes.append(data['object detection'][name])
 
 def output_organizer(original_output, original_img_size, model_img_size):
     """This function receives the output from the inference and organizes the

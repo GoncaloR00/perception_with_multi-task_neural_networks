@@ -4,7 +4,9 @@ import time
 import torchvision
 import numpy as np
 import cv2
+from .coco2bdd100k import coco2bdd100k
 
+dataset_converter = coco2bdd100k("object detection")
 # Internal Utils
 
 def xywh2xyxy(x):
@@ -188,5 +190,5 @@ def pred2bbox(pred, original_img_size, model_img_size, original_class_list):
             for *xyxy, conf, cls in reversed(det):# Add bbox to image
                 coords = [(int(xyxy[0]), int(xyxy[1])), (int(xyxy[2]), int(xyxy[3]))]
                 det_list.append(coords)
-                class_list.append(original_class_list[int(cls)])
+                class_list.append(original_class_list[dataset_converter.convert(int(cls))])
     return class_list, det_list

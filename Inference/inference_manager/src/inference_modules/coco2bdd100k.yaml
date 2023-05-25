@@ -1,0 +1,36 @@
+
+# Coco index: [BDD100k index]
+# Missing numbers - missing matches
+object detection:
+  1: [1, 2]
+  2: [8]
+  3: [3]
+  4: [7]
+  6: [5]
+  7: [6]
+  8: [4]
+  10: [9]
+  12: [10]
+
+
+semantic segmentation:
+  1: [11, 12]
+  2: [18]
+  3: [13]
+  4: [17]
+  6: [15]
+  7: [16]
+  8: [14]
+  10: [6]
+  12: [7]
+
+panoptic segmentation:
+  1: [31, 32]
+  2: [33]
+  3: [35]
+  4: [37]
+  6: [34]
+  7: [39]
+  8: [40]
+  10: [25]
+  12: [26]

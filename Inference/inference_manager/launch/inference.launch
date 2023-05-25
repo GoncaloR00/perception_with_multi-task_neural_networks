@@ -11,23 +11,26 @@
     <arg name="mp_yolopv2" default="$(find inference_manager)/../../models/yolopv2.pt"/>
     <!-- YoloV5 -->
     <arg name="fn_yolov5_det" default="yolov5sDet_module"/>
-    <arg name="mp_yolov5s_det" default="$(find inference_manager)/../../models/yolov8s.torchscript"/>
+    <arg name="mp_yolov5s_det" default="$(find inference_manager)/../../models/yolov5s.torchscript"/>
+    <!-- YoloV8 -->
+    <arg name="fn_yolov8_det" default="yolov5sDet_module"/>
+    <arg name="mp_yolov8s_det" default="$(find inference_manager)/../../models/yolov8s.torchscript"/>
 
 <!-- ####################################################################### -->
 <!-- ############################### Nodes ################################# -->
 <!-- ####################################################################### -->
     <node pkg="basic_sender" name="image_sender" type="sender_node.py"/>
 
-    <group ns='frontcamera/yolopv2'>
+    <!-- <group ns='frontcamera/yolopv2'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolopv2) -mp $(arg mp_yolopv2) -sr $(arg front_camera)"/>
-    </group>
+    </group> -->
 
 
-    <!-- <group ns='frontcamera/yolov5'>
+    <group ns='frontcamera/yolov5'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
-    </group> -->
+    </group>
 
 
 </launch>
