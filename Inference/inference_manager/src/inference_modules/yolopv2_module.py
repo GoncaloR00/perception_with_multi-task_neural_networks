@@ -67,7 +67,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
     # Returns of variables; If more outputs are needed, it is required to adapt 
     # the inference_class script. If less, the unused variables should be =None
 
-    return (det2d_class_list, det2d_list), (seg_classes, seg_list)
+    return (det2d_class_list, det2d_list), (seg_classes, seg_list, "panoptic")
 
 def transforms(image, cuda:bool, device):
     """This function transforms the input image into a format compatible with

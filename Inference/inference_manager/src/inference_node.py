@@ -52,7 +52,9 @@ class InferenceNode:
             detect2d_msg.ClassList = strings
             self.detection2d_pub.publish(detect2d_msg)
         if not(segmentations is None):
-            (seg_classes, seg_list) = segmentations
+            ctg_msg = String()
+            (seg_classes, seg_list, category) = segmentations
+            ctg_msg.data = category
             segmentation_msg = segmentation()
             mask_msg = []
             strings = []
@@ -65,6 +67,7 @@ class InferenceNode:
 
             segmentation_msg.ClassList = strings
             segmentation_msg.MaskList = mask_msg
+            segmentation_msg.Category = ctg_msg
             self.segmentation_pub.publish(segmentation_msg)
 
 
