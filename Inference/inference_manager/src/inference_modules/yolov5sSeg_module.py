@@ -5,17 +5,20 @@ from .yolov5seg_utils import non_max_suppression
 import numpy as np
 import torch
 import cv2
-
 import yaml
 from yaml.loader import SafeLoader
 from pathlib import Path
+from .coco2bdd100k import coco2bdd100k
+
 mod_path = Path(__file__).parent
 
 det_classes = []
-with open(mod_path / 'coco.yaml') as f:
+with open(mod_path / 'bdd100k.yaml') as f:
     data = yaml.load(f, Loader=SafeLoader)
-    for name in data['names']:
-        det_classes.append(data['names'][name])
+    for name in data['semantic segmentation']:
+        det_classes.append(data['semantic segmentation'][name])
+
+dataset_converter = coco2bdd100k("object detection")
 
 # image dimensions in the format (height, width)
 
@@ -57,7 +60,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
             seg_list = []
             seg_classes = []
             for idx, x in enumerate(det[:, 5]):
-                seg_classes.append(det_classes[int(x)])
+                seg_classes.append(det_classes[dataset_converter.convert(int(x))])
                 mask = (masks[idx] * 255).astype('uint8')
                 mask = cv2.resize(mask, (original_img_size[1], original_img_size[0]))
                 seg_list.append(mask)
