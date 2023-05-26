@@ -6,7 +6,42 @@ from sensor_msgs.msg import Image
 from inference_manager.msg import detect2d, segmentation
 import copy
 import numpy as np
+import yaml
+from yaml.loader import SafeLoader
+from pathlib import Path
+import math
 
+def get_color_range(data):
+    # Define a different color for each object class or instance
+    frac, intNum = math.modf(256/(len(data)))
+    intNum = int(intNum)
+    frac = int(round(math.prod((frac, (len(data)))))) 
+    output_cls = {}
+    first_val = -1
+    second_val = 0
+    for name in data:
+        if frac > 0:
+            second_val = first_val + intNum + 1
+            output_cls[data[name]] = [first_val+1, second_val]
+            first_val = second_val
+            frac -=1
+        else:
+            second_val = first_val + intNum
+            output_cls[data[name]] = [first_val+1, second_val]
+            first_val = second_val
+    return output_cls
+
+mod_path = Path(__file__).parent
+with open(mod_path / 'bdd100k.yaml') as f:
+    data = yaml.load(f, Loader=SafeLoader)
+
+# Define a different color for each object class
+objDect_cls = {}
+for name in data['object detection']:
+    objDect_cls[data['object detection'][name]] = cv2.cvtColor(np.array([[[int(255/(math.sqrt(name))),255,255]]], np.uint8), cv2.COLOR_HSV2BGR).squeeze().tolist()
+
+semantic_cls = get_color_range(data['semantic segmentation'])
+panoptic_cls = get_color_range(data['panoptic segmentation'])
 
 class BasicReceiver:
     def __init__(self):
@@ -27,6 +62,7 @@ class BasicReceiver:
         self.BBoxes = msg
         # self.BBox_classes = msg.ClassList
     def segmentationCallback(self, msg):
+        # if msg.Category = "semantic"
         pedestrian = None
         car = None
         for idx, seg_class in enumerate(msg.ClassList):
@@ -71,12 +107,13 @@ if __name__ == '__main__':
                 for idx, bbox in enumerate(bbox_list):
                     c1 = (bbox.Px1, bbox.Py1)
                     c2 = (bbox.Px2, bbox.Py2)
-                    image = cv2.rectangle(image, c1, c2, [0,255,255], thickness=2, lineType=cv2.LINE_AA)
-                    top_center = [int((c1[0]+c2[0])/2), c1[1]]
                     text = bbox_classes[idx].data
+                    color = objDect_cls[text]
+                    image = cv2.rectangle(image, c1, c2, color = color, thickness=2, lineType=cv2.LINE_AA)
+                    top_center = [int((c1[0]+c2[0])/2), c1[1]]
                     label_size = cv2.getTextSize(text=text, fontFace=fontFace, thickness=thickness, fontScale=fontScale)
                     org = (top_center[0]-int(label_size[0][0]/2),top_center[1]-int(label_size[0][1]/2))
-                    image = cv2.putText(image, text=text, org=org, fontFace=fontFace, thickness=thickness, fontScale=fontScale, color=(0,255,255))
+                    image = cv2.putText(image, text=text, org=org, fontFace=fontFace, thickness=thickness, fontScale=fontScale, color=color)
             cv2.imshow(window_name, image)
             cv2.waitKey(1)
     cv2.destroyAllWindows()
