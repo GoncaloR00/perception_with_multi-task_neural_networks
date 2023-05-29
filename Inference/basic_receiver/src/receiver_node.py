@@ -12,9 +12,13 @@ from pathlib import Path
 import math
 import timeit
 
+threshold_semantic = 200
+threshold_instance = 235
+threshold_panoptic = 200
+
 def get_color_range(data):
     # Define a different color for each object class or instance
-    frac, intNum = math.modf(256/(len(data)))
+    frac, intNum = math.modf(180/(len(data)))
     intNum = int(intNum)
     frac = int(round(math.prod((frac, (len(data)))))) 
     output_cls = {}
@@ -36,7 +40,6 @@ def isAllEmpty(dictionary):
     counter = 0
     for key in dictionary:
         counter += len(dictionary[key])
-    # a = sum([isinstance(dictionary[i], list) for i in dictionary])
     return counter == 0
 
 mod_path = Path(__file__).parent
@@ -65,18 +68,12 @@ class BasicReceiver:
         topic_input = '/cameras/frontcamera'
         topic_detection2d = 'detection2d'
         topic_segmentation = 'segmentation'
-        
         self.bridge = CvBridge()
         self.original_image = None
         self.BBoxes = None
         self.semantic = void_semantic
         self.instance = void_instance
         self.panoptic = void_panoptic
-        # self.semantic = None
-        # self.instance = None
-        # self.panoptic = None
-        self.drivable_area = None
-        self.lanes = None
         self.subscriber_input = rospy.Subscriber(topic_input, Image, self.inputCallback)
         self.subscriber_detection2d = rospy.Subscriber(topic_detection2d, detect2d, self.detection2dCallback)
         self.subscriber_segmentation = rospy.Subscriber(topic_segmentation, segmentation, self.segmentationCallback)
@@ -95,36 +92,18 @@ class BasicReceiver:
                 #     self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
                 # else:
                 #     self.semantic[seg_class.data] = [np.maximum(self.semantic[seg_class.data][0], self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))]
-        if msg.Category == "instance":
+        if msg.Category.data == "instance":
             # Clear previous masks
             self.instance = copy.deepcopy(void_instance)
             for idx, seg_class in enumerate(msg.ClassList):
-                if len(self.instance[seg_class]) == 0:
-                    self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                if len(self.instance[seg_class.data]) == 0:
+                    self.instance[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
                 else:
-                    self.semantic[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
-        if msg.Category == "panoptic":
+                    self.instance[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+        if msg.Category.data == "panoptic":
             # Clear previous masks
             self.panoptic = copy.deepcopy(void_panoptic)
 
-        # pedestrian = None
-        # car = None
-        # for idx, seg_class in enumerate(msg.ClassList):
-        #     if seg_class.data == "pedestrian" or seg_class.data == "person":
-        #         if pedestrian is None:
-        #             pedestrian = self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')
-        #         else:
-        #             pedestrian = np.maximum(pedestrian, self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
-        #     if seg_class.data == "car":
-        #         if car is None:
-        #             car = self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')
-        #         else:
-        #             car = np.maximum(car, self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
-
-        # self.drivable_area = car
-        # self.lanes = pedestrian
-        # self.drivable_area = self.bridge.imgmsg_to_cv2(msg.MaskList[0], desired_encoding='passthrough')
-        # self.lanes = self.bridge.imgmsg_to_cv2(msg.MaskList[1], desired_encoding='passthrough')
 if __name__ == '__main__':
     teste = BasicReceiver()
     rospy.init_node('image_plotter', anonymous=True)
@@ -137,31 +116,47 @@ if __name__ == '__main__':
         if not(teste.original_image is None):
             image = teste.original_image
             image = copy.copy(image)
-            # if not(teste.semantic is None and teste.instance is None and teste.panoptic is None):
-            #     image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-            #     if not(teste.semantic is None):
-            #         for key in teste.semantic:
-            #             print(key)
-            # print(f"semantic: {teste.semantic == void_semantic} | instance: {teste.instance == void_instance}")
-            # print(teste.semantic == void_semantic)
-            # print(len(teste.semantic))
-            # if not(teste.semantic == void_semantic and teste.instance == void_instance and teste.panoptic == void_panoptic):
-            # tic=timeit.default_timer()
             semantic_state = isAllEmpty(teste.semantic)
             instance_state = isAllEmpty(teste.instance)
             panoptic_state = isAllEmpty(teste.panoptic)
             if not(semantic_state and instance_state and panoptic_state):
                 image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
                 if not(semantic_state):
-                    # print(teste.semantic)
                     for key in teste.semantic:
-                        # print(len(teste.semantic[key]))
                         if len(teste.semantic[key])>0:
                             for mask in teste.semantic[key]:
-                                # pass
-                                # print(mask)
-                                image[:,:,0][mask>200] = int((semantic_cls[key][0] + semantic_cls[key][1])/2)
-                                image[:,:,1][mask>200] = 255
+                                image[:,:,0][mask>threshold_semantic] = int((semantic_cls[key][0] + semantic_cls[key][1])/2)
+                                image[:,:,1][mask>threshold_semantic] = 255
+
+                if not(instance_state):
+                    # Colors randomly distributed
+                    for key in teste.instance:
+                            if len(teste.instance[key])>0:
+                                counter = 0
+                                for mask in teste.instance[key]:
+                                    color = 0 + counter
+                                    if color > 179:
+                                        color = 0
+                                        counter = 10
+                                    else:
+                                        counter += 10
+                                    image[:,:,0][mask>threshold_instance] = color
+                                    image[:,:,1][mask>threshold_instance] = 255
+                        
+                        # # Colors distributed by classes
+                        # if len(teste.instance[key])>0:
+                        #     color_range = semantic_cls[key][1] - semantic_cls[key][0]
+                        #     counter = 0
+                        #     for mask in teste.instance[key]:
+                        #         color = semantic_cls[key][0] + counter
+                        #         if color > semantic_cls[key][1]:
+                        #             color = semantic_cls[key][0]
+                        #             counter = 1
+                        #         else:
+                        #             counter += 1
+                        #         image[:,:,0][mask>threshold_instance] = color
+                        #         image[:,:,1][mask>threshold_instance] = 255
+
                 image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
             # toc = timeit.default_timer()
             # print(f"Time = {toc-tic}")
@@ -188,6 +183,12 @@ if __name__ == '__main__':
                     label_size = cv2.getTextSize(text=text, fontFace=fontFace, thickness=thickness, fontScale=fontScale)
                     org = (top_center[0]-int(label_size[0][0]/2),top_center[1]-int(label_size[0][1]/2))
                     image = cv2.putText(image, text=text, org=org, fontFace=fontFace, thickness=thickness, fontScale=fontScale, color=color)
+            # if len(teste.instance["building"]) > 0:
+            #     cv2.imshow('carro1', teste.instance["building"][0])
+            #     if len(teste.instance["building"]) > 1:
+            #         cv2.imshow('carro2', teste.instance["building"][1])
+            #         if len(teste.instance["building"]) > 2:
+            #             cv2.imshow('carro3', teste.instance["building"][2])
             cv2.imshow(window_name, image)
             cv2.waitKey(1)
     cv2.destroyAllWindows()
