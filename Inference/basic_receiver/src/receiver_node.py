@@ -10,6 +10,7 @@ import yaml
 from yaml.loader import SafeLoader
 from pathlib import Path
 import math
+import timeit
 
 def get_color_range(data):
     # Define a different color for each object class or instance
@@ -31,6 +32,13 @@ def get_color_range(data):
             first_val = second_val
     return output_cls
 
+def isAllEmpty(dictionary):
+    counter = 0
+    for key in dictionary:
+        counter += len(dictionary[key])
+    # a = sum([isinstance(dictionary[i], list) for i in dictionary])
+    return counter == 0
+
 mod_path = Path(__file__).parent
 with open(mod_path / 'bdd100k.yaml') as f:
     data = yaml.load(f, Loader=SafeLoader)
@@ -43,42 +51,71 @@ for name in data['object detection']:
 semantic_cls = get_color_range(data['semantic segmentation'])
 panoptic_cls = get_color_range(data['panoptic segmentation'])
 
+
+void_semantic = copy.deepcopy(semantic_cls)
+void_semantic = {key: [] for key in void_semantic}
+
+void_instance = copy.deepcopy(void_semantic)
+
+void_panoptic = copy.deepcopy(panoptic_cls)
+void_panoptic = {key: [] for key in void_panoptic}
+
 class BasicReceiver:
     def __init__(self):
         topic_input = '/cameras/frontcamera'
         topic_detection2d = 'detection2d'
         topic_segmentation = 'segmentation'
-        self.subscriber_input = rospy.Subscriber(topic_input, Image, self.inputCallback)
-        self.subscriber_detection2d = rospy.Subscriber(topic_detection2d, detect2d, self.detection2dCallback)
-        self.subscriber_segmentation = rospy.Subscriber(topic_segmentation, segmentation, self.segmentationCallback)
+        
         self.bridge = CvBridge()
         self.original_image = None
         self.BBoxes = None
+        self.semantic = void_semantic
+        self.instance = void_instance
+        self.panoptic = void_panoptic
+        # self.semantic = None
+        # self.instance = None
+        # self.panoptic = None
         self.drivable_area = None
         self.lanes = None
+        self.subscriber_input = rospy.Subscriber(topic_input, Image, self.inputCallback)
+        self.subscriber_detection2d = rospy.Subscriber(topic_detection2d, detect2d, self.detection2dCallback)
+        self.subscriber_segmentation = rospy.Subscriber(topic_segmentation, segmentation, self.segmentationCallback)
     def inputCallback(self, msg):
         self.original_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
     def detection2dCallback(self, msg):
         self.BBoxes = msg
-        # self.BBox_classes = msg.ClassList
     def segmentationCallback(self, msg):
-        # if msg.Category = "semantic"
-        pedestrian = None
-        car = None
-        for idx, seg_class in enumerate(msg.ClassList):
-            if seg_class.data == "pedestrian" or seg_class.data == "person":
-                if pedestrian is None:
-                    pedestrian = self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')
-                else:
-                    pedestrian = np.maximum(pedestrian, self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
-            if seg_class.data == "car":
-                if car is None:
-                    car = self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')
-                else:
-                    car = np.maximum(car, self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+        if msg.Category.data == "semantic":
+            for idx, seg_class in enumerate(msg.ClassList):
+                # União temporária de instâncias da mesma classe -> Instâncias para semântica
+                # print(len(self.semantic[seg_class.data]))
+                self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                # if len(self.semantic[seg_class.data]) == 0:
+                #     print('here1')
+                #     self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                # else:
+                #     print('here2')
+                #     self.semantic[seg_class.data] = [np.maximum(self.semantic[seg_class.data][0], self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))]
+        if msg.Category == "instance":
+            pass
+        if msg.Category == "panoptic":
+            pass
+        # pedestrian = None
+        # car = None
+        # for idx, seg_class in enumerate(msg.ClassList):
+        #     if seg_class.data == "pedestrian" or seg_class.data == "person":
+        #         if pedestrian is None:
+        #             pedestrian = self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')
+        #         else:
+        #             pedestrian = np.maximum(pedestrian, self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+        #     if seg_class.data == "car":
+        #         if car is None:
+        #             car = self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')
+        #         else:
+        #             car = np.maximum(car, self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
 
-        self.drivable_area = car
-        self.lanes = pedestrian
+        # self.drivable_area = car
+        # self.lanes = pedestrian
         # self.drivable_area = self.bridge.imgmsg_to_cv2(msg.MaskList[0], desired_encoding='passthrough')
         # self.lanes = self.bridge.imgmsg_to_cv2(msg.MaskList[1], desired_encoding='passthrough')
 if __name__ == '__main__':
@@ -93,10 +130,37 @@ if __name__ == '__main__':
         if not(teste.original_image is None):
             image = teste.original_image
             image = copy.copy(image)
-            if not(teste.drivable_area is None):
-                image[:,:,2][teste.drivable_area >200] = 255
-            if not(teste.lanes is None):
-                image[:,:,0][teste.lanes >200] = 255
+            # if not(teste.semantic is None and teste.instance is None and teste.panoptic is None):
+            #     image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+            #     if not(teste.semantic is None):
+            #         for key in teste.semantic:
+            #             print(key)
+            # print(f"semantic: {teste.semantic == void_semantic} | instance: {teste.instance == void_instance}")
+            # print(teste.semantic == void_semantic)
+            # print(len(teste.semantic))
+            # if not(teste.semantic == void_semantic and teste.instance == void_instance and teste.panoptic == void_panoptic):
+            semantic_state = isAllEmpty(teste.semantic)
+            instance_state = isAllEmpty(teste.instance)
+            panoptic_state = isAllEmpty(teste.panoptic)
+            if not(semantic_state and instance_state and panoptic_state):
+                image = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
+                if not(semantic_state):
+                    # print(teste.semantic)
+                    for key in teste.semantic:
+                        print(len(teste.semantic[key]))
+                        if len(teste.semantic[key])>0:
+                            for mask in teste.semantic[key]:
+                                # pass
+                                # print(mask)
+                                image[:,:,0][mask>200] = int((semantic_cls[key][0] + semantic_cls[key][1])/2)
+                                image[:,:,1][mask>200] = 255
+                image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+            # if not(teste.drivable_area is None):
+            #     image[:,:,2][teste.drivable_area >200] = 255
+            # if not(teste.lanes is None):
+            #     image[:,:,0][teste.lanes >200] = 255
+
+            # Draw bounding boxes
             if not(teste.BBoxes is None):
                 bboxes = teste.BBoxes
                 bbox_list = bboxes.BBoxList

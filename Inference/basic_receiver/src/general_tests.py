@@ -1,41 +1,22 @@
 #!/usr/bin/python3
 
-import cv2
-import numpy as np
-import math
-# image = cv2.imread('./bus.jpg')
-# hsv = cv2.cvtColor(image, cv2.COLOR_BGR2HSV)
-# hsv[:,:,0]=100
-# hsv[:,:,1]=255
-# final = cv2.cvtColor(hsv, cv2.COLOR_HSV2BGR)
-# cv2.imshow("Image", final)
-# cv2.waitKey(0)
-# teste1 = np.zeros((1,1,3), np.uint8)
-# teste2 = np.array([[[100,255,255]]], np.uint8)
-# bgr = cv2.cvtColor(np.array([[[100,255,255]]], np.uint8), cv2.COLOR_HSV2BGR)
-# print(bgr.squeeze())
-# # teste2 = np.asarray(teste2, np.uint8)
-
-# print(teste1)
-# # # teste=np.asarray(teste1)
-# hsv = cv2.cvtColor(teste2, cv2.COLOR_BGR2HSV)
-# print(hsv)
-# cv2.imshow('teste', bgr)
-# cv2.waitKey(0)
-
-name = 1
-# bgr = cv2.cvtColor(np.array([[[int(255/(math.sqrt(name))),255,255]]], np.uint8), cv2.COLOR_HSV2BGR).squeeze()
-# frac, intNum = math.modf()
-# bgr = 255//10
-# print(bgr)
-# print(5/3)
 import yaml
 from yaml.loader import SafeLoader
 from pathlib import Path
 import math
+import copy
+import cv2
+import numpy as np
+from collections import Counter
+import timeit
+
 mod_path = Path(__file__).parent
 with open(mod_path / 'bdd100k.yaml') as f:
     data = yaml.load(f, Loader=SafeLoader)
+
+def count_none_values(dictionary):
+    value_counts = Counter(dictionary.values())
+    return value_counts[None]
 
 def get_color_range(data):
     # Define a different color for each object class or instance
@@ -63,10 +44,33 @@ with open(mod_path / 'bdd100k.yaml') as f:
 
 # Define a different color for each object class
 objDect_cls = {}
+
 for name in data['object detection']:
     objDect_cls[data['object detection'][name]] = cv2.cvtColor(np.array([[[int(255/(math.sqrt(name))),255,255]]], np.uint8), cv2.COLOR_HSV2BGR).squeeze().tolist()
 
 semantic_cls = get_color_range(data['semantic segmentation'])
 panoptic_cls = get_color_range(data['panoptic segmentation'])
 
-print(semantic_cls)
+void_semantic = copy.deepcopy(semantic_cls)
+void_semantic = {key: [np.zeros((10000,10000), dtype=np.int32)] for key in void_semantic}
+
+void_instance = copy.deepcopy(void_semantic)
+
+void_panoptic = copy.deepcopy(panoptic_cls)
+void_panoptic = {key: None for key in void_panoptic}
+
+# print(len(void_semantic != None))
+# first_element_of_non_empty = [l[0] for l in void_semantic.values() if l]
+# print(first_element_of_non_empty)
+
+# print(count_none_values(void_semantic))
+
+
+tic=timeit.default_timer()
+print(sum([isinstance(void_semantic[i], list) for i in void_semantic]))
+toc=timeit.default_timer()
+print(toc-tic)
+tic=timeit.default_timer()
+print(sum([isinstance(void_panoptic[i], list) for i in void_panoptic]))
+toc=timeit.default_timer()
+print(toc-tic)
