@@ -49,15 +49,15 @@ for name in data['object detection']:
     objDect_cls[data['object detection'][name]] = cv2.cvtColor(np.array([[[int(255/(math.sqrt(name))),255,255]]], np.uint8), cv2.COLOR_HSV2BGR).squeeze().tolist()
 
 semantic_cls = get_color_range(data['semantic segmentation'])
-panoptic_cls = get_color_range(data['panoptic segmentation'])
+panoptic_cls = get_color_range(data['semantic segmentation'])
 
 void_semantic = copy.deepcopy(semantic_cls)
-void_semantic = {key: [np.zeros((10000,10000), dtype=np.int32)] for key in void_semantic}
+void_semantic = {key: np.zeros((10000,10000), dtype=np.int32) for key in void_semantic}
 
-void_instance = copy.deepcopy(void_semantic)
+# void_instance = copy.deepcopy(void_semantic)
 
 void_panoptic = copy.deepcopy(panoptic_cls)
-void_panoptic = {key: None for key in void_panoptic}
+void_panoptic = {key: [np.zeros((10000,10000), dtype=np.int32)] for key in void_panoptic}
 
 # print(len(void_semantic != None))
 # first_element_of_non_empty = [l[0] for l in void_semantic.values() if l]
@@ -66,11 +66,20 @@ void_panoptic = {key: None for key in void_panoptic}
 # print(count_none_values(void_semantic))
 
 
+# tic=timeit.default_timer()
+# print(sum([isinstance(void_semantic[i], list) for i in void_semantic]))
+# toc=timeit.default_timer()
+# print(toc-tic)
+# tic=timeit.default_timer()
+# print(sum([isinstance(void_panoptic[i], list) for i in void_panoptic]))
+# toc=timeit.default_timer()
+# print(toc-tic)
+
 tic=timeit.default_timer()
-print(sum([isinstance(void_semantic[i], list) for i in void_semantic]))
+print(len(void_semantic['car']))
 toc=timeit.default_timer()
-print(toc-tic)
+print(f"No list: {toc-tic}s")
 tic=timeit.default_timer()
-print(sum([isinstance(void_panoptic[i], list) for i in void_panoptic]))
+print(len(void_panoptic['car']))
 toc=timeit.default_timer()
-print(toc-tic)
+print(f"With list: {toc-tic}s")

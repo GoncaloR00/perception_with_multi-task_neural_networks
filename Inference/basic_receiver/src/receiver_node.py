@@ -86,20 +86,27 @@ class BasicReceiver:
         self.BBoxes = msg
     def segmentationCallback(self, msg):
         if msg.Category.data == "semantic":
+            # Clear previous masks
+            self.semantic = copy.deepcopy(void_semantic)
             for idx, seg_class in enumerate(msg.ClassList):
-                # União temporária de instâncias da mesma classe -> Instâncias para semântica
-                # print(len(self.semantic[seg_class.data]))
                 self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                # # União temporária de instâncias da mesma classe -> Instâncias para semântica
                 # if len(self.semantic[seg_class.data]) == 0:
-                #     print('here1')
                 #     self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
                 # else:
-                #     print('here2')
                 #     self.semantic[seg_class.data] = [np.maximum(self.semantic[seg_class.data][0], self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))]
         if msg.Category == "instance":
-            pass
+            # Clear previous masks
+            self.instance = copy.deepcopy(void_instance)
+            for idx, seg_class in enumerate(msg.ClassList):
+                if len(self.instance[seg_class]) == 0:
+                    self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                else:
+                    self.semantic[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
         if msg.Category == "panoptic":
-            pass
+            # Clear previous masks
+            self.panoptic = copy.deepcopy(void_panoptic)
+
         # pedestrian = None
         # car = None
         # for idx, seg_class in enumerate(msg.ClassList):
@@ -139,6 +146,7 @@ if __name__ == '__main__':
             # print(teste.semantic == void_semantic)
             # print(len(teste.semantic))
             # if not(teste.semantic == void_semantic and teste.instance == void_instance and teste.panoptic == void_panoptic):
+            # tic=timeit.default_timer()
             semantic_state = isAllEmpty(teste.semantic)
             instance_state = isAllEmpty(teste.instance)
             panoptic_state = isAllEmpty(teste.panoptic)
@@ -147,7 +155,7 @@ if __name__ == '__main__':
                 if not(semantic_state):
                     # print(teste.semantic)
                     for key in teste.semantic:
-                        print(len(teste.semantic[key]))
+                        # print(len(teste.semantic[key]))
                         if len(teste.semantic[key])>0:
                             for mask in teste.semantic[key]:
                                 # pass
@@ -155,6 +163,8 @@ if __name__ == '__main__':
                                 image[:,:,0][mask>200] = int((semantic_cls[key][0] + semantic_cls[key][1])/2)
                                 image[:,:,1][mask>200] = 255
                 image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
+            # toc = timeit.default_timer()
+            # print(f"Time = {toc-tic}")
             # if not(teste.drivable_area is None):
             #     image[:,:,2][teste.drivable_area >200] = 255
             # if not(teste.lanes is None):
