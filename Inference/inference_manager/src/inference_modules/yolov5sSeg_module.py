@@ -18,7 +18,7 @@ with open(mod_path / 'bdd100k.yaml') as f:
     for name in data['semantic segmentation']:
         det_classes.append(data['semantic segmentation'][name])
 
-dataset_converter = coco2bdd100k("object detection")
+dataset_converter = coco2bdd100k("semantic segmentation")
 
 # image dimensions in the format (height, width)
 

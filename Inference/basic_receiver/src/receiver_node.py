@@ -183,12 +183,13 @@ if __name__ == '__main__':
                     label_size = cv2.getTextSize(text=text, fontFace=fontFace, thickness=thickness, fontScale=fontScale)
                     org = (top_center[0]-int(label_size[0][0]/2),top_center[1]-int(label_size[0][1]/2))
                     image = cv2.putText(image, text=text, org=org, fontFace=fontFace, thickness=thickness, fontScale=fontScale, color=color)
-            # if len(teste.instance["building"]) > 0:
-            #     cv2.imshow('carro1', teste.instance["building"][0])
-            #     if len(teste.instance["building"]) > 1:
-            #         cv2.imshow('carro2', teste.instance["building"][1])
-            #         if len(teste.instance["building"]) > 2:
-            #             cv2.imshow('carro3', teste.instance["building"][2])
+            # if len(teste.instance["car"]) > 0:
+            #     cv2.imshow('carro1', teste.instance["car"][0])
+            #     if len(teste.instance["car"]) > 1:
+            #         cv2.imshow('carro2', teste.instance["car"][1])
+            #         if len(teste.instance["car"]) > 2:
+            #             cv2.imshow('carro3', teste.instance["car"][2])
             cv2.imshow(window_name, image)
+            print(teste.instance)
             cv2.waitKey(1)
     cv2.destroyAllWindows()
