@@ -103,6 +103,11 @@ class BasicReceiver:
         if msg.Category.data == "panoptic":
             # Clear previous masks
             self.panoptic = copy.deepcopy(void_panoptic)
+            for idx, seg_class in enumerate(msg.ClassList):
+                if len(self.panoptic[seg_class.data]) == 0:
+                    self.panoptic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                else:
+                    self.panoptic[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
 
 if __name__ == '__main__':
     teste = BasicReceiver()
@@ -156,6 +161,21 @@ if __name__ == '__main__':
                         #             counter += 1
                         #         image[:,:,0][mask>threshold_instance] = color
                         #         image[:,:,1][mask>threshold_instance] = 255
+                if not(panoptic_state):
+                    for key in teste.panoptic:
+                        # Colors distributed by classes
+                        if len(teste.panoptic[key])>0:
+                            color_range = panoptic_cls[key][1] - panoptic_cls[key][0]
+                            counter = 0
+                            for mask in teste.panoptic[key]:
+                                color = panoptic_cls[key][0] + counter
+                                if color > panoptic_cls[key][1]:
+                                    color = panoptic_cls[key][0]
+                                    counter = 1
+                                else:
+                                    counter += 1
+                                image[:,:,0][mask>threshold_instance] = color
+                                image[:,:,1][mask>threshold_instance] = 120
 
                 image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
             # toc = timeit.default_timer()
@@ -190,6 +210,5 @@ if __name__ == '__main__':
             #         if len(teste.instance["car"]) > 2:
             #             cv2.imshow('carro3', teste.instance["car"][2])
             cv2.imshow(window_name, image)
-            print(teste.instance)
             cv2.waitKey(1)
     cv2.destroyAllWindows()

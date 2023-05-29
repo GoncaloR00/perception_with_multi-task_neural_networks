@@ -26,10 +26,10 @@
 <!-- ####################################################################### -->
     <node pkg="basic_sender" name="image_sender" type="sender_node.py"/>
 
-    <!-- <group ns='frontcamera/yolopv2'>
+    <group ns='frontcamera/yolopv2'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolopv2) -mp $(arg mp_yolopv2) -sr $(arg front_camera)"/>
-    </group> -->
+    </group>
 
 
     <!-- <group ns='frontcamera/yolov5'>
@@ -37,10 +37,10 @@
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
     </group> -->
 
-    <group ns='frontcamera/yolov5-seg'>
+    <!-- <group ns='frontcamera/yolov5-seg'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_seg) -mp $(arg mp_yolov5s_seg) -sr $(arg front_camera)"/>
-    </group>
+    </group> -->
 
 
 </launch>
