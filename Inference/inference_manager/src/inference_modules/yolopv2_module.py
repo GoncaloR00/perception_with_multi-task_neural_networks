@@ -47,7 +47,6 @@ def output_organizer(original_output, original_img_size, model_img_size):
     documentation"""
     
     # Classes lists
-    # det_classes = ["car"]
     seg_classes = ["road", "lane divider"]
 
     # Separate variables in the output of the inference

@@ -87,7 +87,7 @@ class BasicReceiver:
             self.semantic = copy.deepcopy(void_semantic)
             for idx, seg_class in enumerate(msg.ClassList):
                 self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
-                # # União temporária de instâncias da mesma classe -> Instâncias para semântica
+                # # Temporary union of instances of the same classe -> Instance to semantic segmentation
                 # if len(self.semantic[seg_class.data]) == 0:
                 #     self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
                 # else:
@@ -114,7 +114,14 @@ if __name__ == '__main__':
     rospy.init_node('image_plotter', anonymous=True)
     namespace = rospy.get_namespace()
     try:
-        window_name = f"Camera: {namespace.split('/')[-3]}  |  Model: {namespace.split('/')[-2]}"
+        model_names = ""
+        pl_model = "Model"
+        for idx, name in enumerate(namespace.split('/')[-2].split('|')):
+            if idx > 0:
+                model_names = model_names + " + "
+                pl_model = "Models"
+            model_names = model_names + name
+        window_name = f"Camera: {namespace.split('/')[-3]}  |  {pl_model}: {model_names}"
     except:
         window_name = f"Camera: NO DATA  |  Model: NO DATA"
     while not rospy.is_shutdown():
