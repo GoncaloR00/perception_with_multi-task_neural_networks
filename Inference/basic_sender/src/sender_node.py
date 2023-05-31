@@ -26,6 +26,7 @@ while(cap.isOpened() and not rospy.is_shutdown()):
     ret, frame = cap.read()
     if ret == True:
       image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
+      image_message.header.stamp = rospy.Time.now()
       image_pub.publish(image_message)
     # Break the loop
     else: 

@@ -31,6 +31,7 @@ class InferenceNode:
 
     def InferenceCallback(self,msg):
         image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        image_stamp = msg.header.stamp
         self.inference.load_image(image)
         detections_2d, segmentations = self.inference.infer()
         if not(detections_2d is None):
@@ -48,6 +49,8 @@ class InferenceNode:
                 coord.Py2 = i[1][1]
                 coords.append(coord)
                 strings.append(string)
+            teste = ["1", "2", "3"]
+            detect2d_msg.teste = teste
             detect2d_msg.BBoxList = coords
             detect2d_msg.ClassList = strings
             self.detection2d_pub.publish(detect2d_msg)
@@ -91,11 +94,11 @@ if __name__ == '__main__':
                         help='Topic with the image messages to process')
     arglist = [x for x in sys.argv[1:] if not x.startswith('__')]
     args = vars(parser.parse_args(args=arglist))
-    # model_name = args['model_path'].split('/')[-1].split('.')[0]
-    # source_name = args['source'].split('/')[-1]
+    
+    rospy.init_node('inference_node', anonymous=False)
     teste = InferenceNode(infer_function_name = args['infer_function'], 
                           model_path = args['model_path'], 
                           source = args['source']
                           )
-    rospy.init_node('inference_node', anonymous=False)
+    # rospy.init_node('inference_node', anonymous=False)
     rospy.spin()
