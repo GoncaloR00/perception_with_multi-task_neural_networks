@@ -1,5 +1,14 @@
 import torch
 import importlib
+import torch_tensorrt
+
+# def convert_model(model):
+#     # traced_model = torch.jit.trace(model, [torch.randn((1, 3, 640, 384)).to("cuda")])
+#     trt_model = torch_tensorrt.compile(model,
+#                                 inputs = [torch_tensorrt.Input((1, 3, 384, 640), dtype=torch.float32)],
+#                                 enabled_precisions = {torch.float32},
+#                                 truncate_long_and_double = True)
+#     return trt_model
 
 class Inference:
     def __init__(self, model_path:str, infer_function_name:str):
@@ -19,6 +28,11 @@ class Inference:
         print(f"Using device: {self.device}")
         # Load model - TODO allow more formats
         self.model = torch.jit.load(model_path)
+        # with open(model_path, 'rb') as f, trt.Runtime(logger) as runtime:
+        #     self.model = runtime.deserialize_cuda_engine(f.read())
+        # load = torch.jit.load(model_path)
+        # self.model = convert_model(load)
+        # self.model = torch.hub.load('./', 'custom', path=model_path, source='local')
         self.model.to(self.device)
 
         if self.cuda:

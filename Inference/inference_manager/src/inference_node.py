@@ -49,10 +49,9 @@ class InferenceNode:
                 coord.Py2 = i[1][1]
                 coords.append(coord)
                 strings.append(string)
-            teste = ["1", "2", "3"]
-            detect2d_msg.teste = teste
             detect2d_msg.BBoxList = coords
             detect2d_msg.ClassList = strings
+            detect2d_msg.stamp = image_stamp
             self.detection2d_pub.publish(detect2d_msg)
         if not(segmentations is None):
             ctg_msg = String()
@@ -71,6 +70,7 @@ class InferenceNode:
             segmentation_msg.ClassList = strings
             segmentation_msg.MaskList = mask_msg
             segmentation_msg.Category = ctg_msg
+            segmentation_msg.stamp = image_stamp
             self.segmentation_pub.publish(segmentation_msg)
 
 

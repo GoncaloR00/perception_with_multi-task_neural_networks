@@ -15,6 +15,8 @@ import timeit
 threshold_semantic = 200
 threshold_instance = 235
 threshold_panoptic = 200
+fps = 69
+max_time = rospy.Duration.from_sec(1/fps)
 
 def get_color_range(data):
     # Define a different color for each object class or instance
@@ -79,35 +81,42 @@ class BasicReceiver:
         self.subscriber_segmentation = rospy.Subscriber(topic_segmentation, segmentation, self.segmentationCallback)
     def inputCallback(self, msg):
         self.original_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+        self.origin_stamp = msg.header.stamp
     def detection2dCallback(self, msg):
-        self.BBoxes = msg
+        if self.origin_stamp - msg.stamp < max_time:
+            self.BBoxes = msg
+        else:
+            self.BBoxes = None
     def segmentationCallback(self, msg):
         if msg.Category.data == "semantic":
             # Clear previous masks
             self.semantic = copy.deepcopy(void_semantic)
-            for idx, seg_class in enumerate(msg.ClassList):
-                self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
-                # # Temporary union of instances of the same classe -> Instance to semantic segmentation
-                # if len(self.semantic[seg_class.data]) == 0:
-                #     self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
-                # else:
-                #     self.semantic[seg_class.data] = [np.maximum(self.semantic[seg_class.data][0], self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))]
+            if self.origin_stamp - msg.stamp < max_time:
+                for idx, seg_class in enumerate(msg.ClassList):
+                    self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                    # # Temporary union of instances of the same classe -> Instance to semantic segmentation
+                    # if len(self.semantic[seg_class.data]) == 0:
+                    #     self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                    # else:
+                    #     self.semantic[seg_class.data] = [np.maximum(self.semantic[seg_class.data][0], self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))]
         if msg.Category.data == "instance":
             # Clear previous masks
             self.instance = copy.deepcopy(void_instance)
-            for idx, seg_class in enumerate(msg.ClassList):
-                if len(self.instance[seg_class.data]) == 0:
-                    self.instance[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
-                else:
-                    self.instance[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+            if self.origin_stamp - msg.stamp < max_time:
+                for idx, seg_class in enumerate(msg.ClassList):
+                    if len(self.instance[seg_class.data]) == 0:
+                        self.instance[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                    else:
+                        self.instance[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
         if msg.Category.data == "panoptic":
             # Clear previous masks
             self.panoptic = copy.deepcopy(void_panoptic)
-            for idx, seg_class in enumerate(msg.ClassList):
-                if len(self.panoptic[seg_class.data]) == 0:
-                    self.panoptic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
-                else:
-                    self.panoptic[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+            if self.origin_stamp - msg.stamp < max_time:
+                for idx, seg_class in enumerate(msg.ClassList):
+                    if len(self.panoptic[seg_class.data]) == 0:
+                        self.panoptic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                    else:
+                        self.panoptic[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
 
 if __name__ == '__main__':
     teste = BasicReceiver()
