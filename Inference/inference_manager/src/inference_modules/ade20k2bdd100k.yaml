@@ -1,0 +1,31 @@
+
+# ADE20k index: [BDD100k index]
+# Missing numbers - missing matches
+# Só está confirmada a segmentação semântica
+
+semantic segmentation:
+  0: [3]
+  1: [2]
+  2: [10]
+  4: [8]
+  5: [2]
+  6: [0]
+  9: [8]
+  11: [1]
+  12: [11, 12]
+  14: [2]
+  16: [8]
+  17: [8]
+  20: [13]
+  25: [2]
+  32: [4]
+  34: [8]
+  61: [8]
+  68: [8]
+  80: [15]
+  83: [14]
+  93: [5]
+  94: [8]
+  116: [18]
+  127: [18]
+  136: [6]

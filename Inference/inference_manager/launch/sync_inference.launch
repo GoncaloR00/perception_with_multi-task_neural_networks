@@ -21,6 +21,9 @@
     <!-- ENet -->
     <arg name="fn_enet" default="ENet_module"/>
     <arg name="mp_enet" default="$(find inference_manager)/../../models/ENET.torchscript"/>
+    <!-- Segformer -->
+    <arg name="fn_segformer" default="Segformer_module"/>
+    <arg name="mp_segformer" default="$(find inference_manager)/../../models/Segformer.torchscript"/>
     <!-- YoloV8 -->
     <arg name="fn_yolov8_det" default="yolov5sDet_module"/>
     <arg name="mp_yolov8s_det" default="$(find inference_manager)/../../models/yolov8s.torchscript"/>
@@ -56,9 +59,13 @@
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det_engine) -sr $(arg front_camera)"/>
     </group> -->
 
-    <group ns='frontcamera/enet'>
+    <!-- <group ns='frontcamera/enet'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_enet) -mp $(arg mp_enet) -sr $(arg front_camera)"/>
+    </group> -->
+    <group ns='frontcamera/segformer'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -sr $(arg front_camera)"/>
     </group>
 
 </launch>
