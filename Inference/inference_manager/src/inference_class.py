@@ -1,6 +1,7 @@
 import torch
 import importlib
 import torch_tensorrt
+import time
 
 # def convert_model(model):
 #     # traced_model = torch.jit.trace(model, [torch.randn((1, 3, 640, 384)).to("cuda")])
@@ -41,13 +42,18 @@ class Inference:
         self.model.eval()
     
     def load_image(self, image):
-
+        time_a = time.time()
         self.transformed_image, self.original_img_size, self.model_img_size = self.output_function.transforms(image, self.cuda, self.device)
+        time_b = time.time()
+        print(f"Carregamento da imagem: {time_b-time_a}")
         # print(self.transformed_image)
 
 
     def infer(self):
+        time_a = time.time()
         with torch.no_grad():
             outputs = self.model(self.transformed_image)
         organized_outputs = self.output_function.output_organizer(outputs, self.original_img_size, self.model_img_size)
+        time_b = time.time()
+        print(f"Tempo de inferência: {time_b-time_a}")
         return organized_outputs

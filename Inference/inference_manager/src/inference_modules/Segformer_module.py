@@ -18,6 +18,7 @@ with open(mod_path / 'bdd100k.yaml') as f:
 
 
 def output_organizer(original_output, original_img_size, model_img_size):
+    time_a = time.time()
     _, predictions = torch.max(original_output.data, 1)
     predictions = predictions.to("cpu")
     seg_classes = []
@@ -30,6 +31,8 @@ def output_organizer(original_output, original_img_size, model_img_size):
             mask = cv2.resize(mask, (original_img_size[1], (original_img_size[0])))
             seg_classes.append(seg_classes_name[dataset_converter.convert(int(i))])
             seg_list.append(mask)
+    time_b = time.time()
+    print(f"Tempo de organização: {time_b-time_a}")
     if len(seg_classes) == 0:
         segmentations = None
     else:

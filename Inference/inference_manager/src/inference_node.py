@@ -7,7 +7,9 @@ from inference_manager.msg import detect2d, segmentation, BBox
 from std_msgs.msg import String
 import argparse
 import sys
+import time
 
+# max_time = 
 
 class InferenceNode:
     def __init__(self, infer_function_name:str, model_path:str, source:str):
@@ -30,49 +32,55 @@ class InferenceNode:
         self.bridge = CvBridge()
 
     def InferenceCallback(self,msg):
-        image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        image_stamp = msg.header.stamp
-        self.inference.load_image(image)
-        detections_2d, segmentations = self.inference.infer()
-        if not(detections_2d is None):
-            (det2d_class_list, det2d_list) = detections_2d
-            detect2d_msg = detect2d()
-            coords = []
-            strings = []
-            for k, i in enumerate(det2d_list):
-                string = String()
-                string.data = det2d_class_list[k]
-                coord = BBox()
-                coord.Px1 = i[0][0]
-                coord.Py1 = i[0][1]
-                coord.Px2 = i[1][0]
-                coord.Py2 = i[1][1]
-                coords.append(coord)
-                strings.append(string)
-            detect2d_msg.BBoxList = coords
-            detect2d_msg.ClassList = strings
-            detect2d_msg.stamp = image_stamp
-            self.detection2d_pub.publish(detect2d_msg)
-        if not(segmentations is None):
-            ctg_msg = String()
-            (seg_classes, seg_list, category) = segmentations
-            ctg_msg.data = category
-            segmentation_msg = segmentation()
-            mask_msg = []
-            strings = []
-            for k, mask in enumerate(seg_list):
-                image_message = self.bridge.cv2_to_imgmsg(mask, encoding="mono8")
-                mask_msg.append(image_message)
-                string = String()
-                string.data = seg_classes[k]
-                strings.append(string)
+        time_a = time.time()
+        time_source = msg.header.stamp
+        now = rospy.get_rostime()
+        time_late = (now-time_source).to_sec()
+        if time_late < 0.005:
+            image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+            image_stamp = msg.header.stamp
+            self.inference.load_image(image)
+            detections_2d, segmentations = self.inference.infer()
+            if not(detections_2d is None):
+                (det2d_class_list, det2d_list) = detections_2d
+                detect2d_msg = detect2d()
+                coords = []
+                strings = []
+                for k, i in enumerate(det2d_list):
+                    string = String()
+                    string.data = det2d_class_list[k]
+                    coord = BBox()
+                    coord.Px1 = i[0][0]
+                    coord.Py1 = i[0][1]
+                    coord.Px2 = i[1][0]
+                    coord.Py2 = i[1][1]
+                    coords.append(coord)
+                    strings.append(string)
+                detect2d_msg.BBoxList = coords
+                detect2d_msg.ClassList = strings
+                detect2d_msg.stamp = image_stamp
+                self.detection2d_pub.publish(detect2d_msg)
+            if not(segmentations is None):
+                ctg_msg = String()
+                (seg_classes, seg_list, category) = segmentations
+                ctg_msg.data = category
+                segmentation_msg = segmentation()
+                mask_msg = []
+                strings = []
+                for k, mask in enumerate(seg_list):
+                    image_message = self.bridge.cv2_to_imgmsg(mask, encoding="mono8")
+                    mask_msg.append(image_message)
+                    string = String()
+                    string.data = seg_classes[k]
+                    strings.append(string)
 
-            segmentation_msg.ClassList = strings
-            segmentation_msg.MaskList = mask_msg
-            segmentation_msg.Category = ctg_msg
-            segmentation_msg.stamp = image_stamp
-            self.segmentation_pub.publish(segmentation_msg)
-
+                segmentation_msg.ClassList = strings
+                segmentation_msg.MaskList = mask_msg
+                segmentation_msg.Category = ctg_msg
+                segmentation_msg.stamp = image_stamp
+                self.segmentation_pub.publish(segmentation_msg)
+        time_b = time.time()
+        print(f"Tempo geral: {time_b-time_a}")
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(

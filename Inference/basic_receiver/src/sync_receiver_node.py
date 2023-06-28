@@ -10,12 +10,12 @@ import yaml
 from yaml.loader import SafeLoader
 from pathlib import Path
 import math
-import timeit
+import time
 
 threshold_semantic = 200
 threshold_instance = 235
 threshold_panoptic = 200
-fps = 69
+fps = 0.0005
 max_time = rospy.Duration.from_sec(1/fps)
 
 def get_color_range(data):
@@ -91,6 +91,7 @@ class BasicReceiver:
         if msg.Category.data == "semantic":
             # Clear previous masks
             self.semantic = copy.deepcopy(void_semantic)
+            print(f"Atraso: {(self.origin_stamp - msg.stamp).to_sec()}")
             if self.origin_stamp - msg.stamp < max_time:
                 for idx, seg_class in enumerate(msg.ClassList):
                     self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
@@ -134,6 +135,7 @@ if __name__ == '__main__':
     except:
         window_name = f"Camera: NO DATA  |  Model: NO DATA"
     while not rospy.is_shutdown():
+        time_a = time.time()
         if not(teste.original_image is None):
             image = teste.original_image
             image = copy.copy(image)
@@ -227,4 +229,6 @@ if __name__ == '__main__':
             #             cv2.imshow('carro3', teste.instance["car"][2])
             cv2.imshow(window_name, image)
             cv2.waitKey(1)
+        # time_b = time.time()
+        # print(f"Tempo de receção: {time_b-time_a}")
     cv2.destroyAllWindows()
