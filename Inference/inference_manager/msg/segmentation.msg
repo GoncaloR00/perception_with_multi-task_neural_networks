@@ -1,4 +1,5 @@
 time stamp
+string frame_id
 std_msgs/String[] ClassList
 # pode ser alterado para string[]!!!!
 sensor_msgs/Image[] MaskList

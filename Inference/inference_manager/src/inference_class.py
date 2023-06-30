@@ -36,8 +36,8 @@ class Inference:
         # self.model = torch.hub.load('./', 'custom', path=model_path, source='local')
         self.model.to(self.device)
 
-        # if self.cuda:
-        #     self.model.half()
+        if self.cuda:
+            self.model.half()
             
         self.model.eval()
     

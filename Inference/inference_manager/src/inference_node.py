@@ -32,6 +32,7 @@ class InferenceNode:
         self.bridge = CvBridge()
 
     def InferenceCallback(self,msg):
+        print("A fazer algo!")
         time_a = time.time()
         time_source = msg.header.stamp
         now = rospy.get_rostime()
@@ -39,6 +40,7 @@ class InferenceNode:
         if time_late < 0.005:
             image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
             image_stamp = msg.header.stamp
+            image_frameId = msg.header.frame_id
             self.inference.load_image(image)
             detections_2d, segmentations = self.inference.infer()
             if not(detections_2d is None):
@@ -59,6 +61,7 @@ class InferenceNode:
                 detect2d_msg.BBoxList = coords
                 detect2d_msg.ClassList = strings
                 detect2d_msg.stamp = image_stamp
+                detect2d_msg.frame_id = image_frameId
                 self.detection2d_pub.publish(detect2d_msg)
             if not(segmentations is None):
                 ctg_msg = String()
@@ -78,6 +81,7 @@ class InferenceNode:
                 segmentation_msg.MaskList = mask_msg
                 segmentation_msg.Category = ctg_msg
                 segmentation_msg.stamp = image_stamp
+                segmentation_msg.frame_id = image_frameId
                 self.segmentation_pub.publish(segmentation_msg)
         time_b = time.time()
         print(f"Tempo geral: {time_b-time_a}")

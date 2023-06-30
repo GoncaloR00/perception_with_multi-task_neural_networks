@@ -1,22 +1,26 @@
 #!/usr/bin/python3
-import cv2
+
 import rospy
+import cv2
 from cv_bridge import CvBridge
 from sensor_msgs.msg import Image
+from pathlib import Path
+import time
+from tqdm import tqdm
 from inference_manager.msg import detect2d, segmentation
 import copy
-import numpy as np
 import yaml
-from yaml.loader import SafeLoader
-from pathlib import Path
+from yaml import SafeLoader
+import numpy as np
 import math
-import time
+import os
 
-threshold_semantic = 200
-threshold_instance = 235
-threshold_panoptic = 200
-fps = 0.0005
-max_time = rospy.Duration.from_sec(1/fps)
+n_images = 10
+topic = '/cameras/evaluation'
+curr_path = Path(__file__).parent
+
+with open(curr_path / 'bdd100k.yaml') as f:
+    data = yaml.load(f, Loader=SafeLoader)
 
 def get_color_range(data):
     # Define a different color for each object class or instance
@@ -44,18 +48,14 @@ def isAllEmpty(dictionary):
         counter += len(dictionary[key])
     return counter == 0
 
-mod_path = Path(__file__).parent
-with open(mod_path / 'bdd100k.yaml') as f:
-    data = yaml.load(f, Loader=SafeLoader)
-
 # Define a different color for each object class
 objDect_cls = {}
 for name in data['object detection']:
     objDect_cls[data['object detection'][name]] = cv2.cvtColor(np.array([[[int(255/(math.sqrt(name))),255,255]]], np.uint8), cv2.COLOR_HSV2BGR).squeeze().tolist()
 
+
 semantic_cls = get_color_range(data['semantic segmentation'])
 panoptic_cls = get_color_range(data['panoptic segmentation'])
-
 
 void_semantic = copy.deepcopy(semantic_cls)
 void_semantic = {key: [] for key in void_semantic}
@@ -65,56 +65,105 @@ void_instance = copy.deepcopy(void_semantic)
 void_panoptic = copy.deepcopy(panoptic_cls)
 void_panoptic = {key: [] for key in void_panoptic}
 
-class BasicReceiver:
+class Receiver:
     def __init__(self):
-        topic_input = '/cameras/frontcamera'
         topic_detection2d = 'detection2d'
         topic_segmentation = 'segmentation'
         self.bridge = CvBridge()
-        self.original_image = None
-        self.BBoxes = None
-        self.semantic = void_semantic
-        self.instance = void_instance
+        self.received_det = 0
+        self.received_lane = 0
+        self.received_drivable = 0
+        self.seg_frameId = "None"
+        self.det2d_frameId = "None"
         self.panoptic = void_panoptic
-        self.subscriber_input = rospy.Subscriber(topic_input, Image, self.inputCallback)
         self.subscriber_detection2d = rospy.Subscriber(topic_detection2d, detect2d, self.detection2dCallback)
         self.subscriber_segmentation = rospy.Subscriber(topic_segmentation, segmentation, self.segmentationCallback)
-    def inputCallback(self, msg):
-        self.original_image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-        self.origin_stamp = msg.header.stamp
+    def reset_all(self):
+        self.received_det = 0
+        self.received_lane = 0
+        self.received_drivable = 0
     def detection2dCallback(self, msg):
-        if self.origin_stamp - msg.stamp < max_time:
-            self.BBoxes = msg
-        else:
-            self.BBoxes = None
+        self.BBoxes = msg
+        self.det2d_frameId = msg.frame_id
+        self.received_det = 1
     def segmentationCallback(self, msg):
-        if msg.Category.data == "semantic":
-            # Clear previous masks
-            self.semantic = copy.deepcopy(void_semantic)
-            print(f"Atraso: {(self.origin_stamp - msg.stamp).to_sec()}")
-            if self.origin_stamp - msg.stamp < max_time:
-                for idx, seg_class in enumerate(msg.ClassList):
-                    self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
-                    # # Temporary union of instances of the same classe -> Instance to semantic segmentation
-                    # if len(self.semantic[seg_class.data]) == 0:
-                    #     self.semantic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
-                    # else:
-                    #     self.semantic[seg_class.data] = [np.maximum(self.semantic[seg_class.data][0], self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))]
-        if msg.Category.data == "instance":
-            # Clear previous masks
-            self.instance = copy.deepcopy(void_instance)
-            if self.origin_stamp - msg.stamp < max_time:
-                for idx, seg_class in enumerate(msg.ClassList):
-                    if len(self.instance[seg_class.data]) == 0:
-                        self.instance[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
-                    else:
-                        self.instance[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
         if msg.Category.data == "panoptic":
+            self.seg_frameId = msg.frame_id
             # Clear previous masks
             self.panoptic = copy.deepcopy(void_panoptic)
-            if self.origin_stamp - msg.stamp < max_time:
-                for idx, seg_class in enumerate(msg.ClassList):
-                    if len(self.panoptic[seg_class.data]) == 0:
-                        self.panoptic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
-                    else:
-                        self.panoptic[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+            for idx, seg_class in enumerate(msg.ClassList):
+                print(seg_class.data)
+                if seg_class.data == "lane divider":
+                    self.received_lane = 1
+                if seg_class.data == "road":
+                    self.received_drivable = 1
+                if len(self.panoptic[seg_class.data]) == 0:
+                    self.panoptic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
+                else:
+                    self.panoptic[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+
+
+
+image_pub = rospy.Publisher(topic,Image, queue_size=10)
+bridge = CvBridge()
+rospy.init_node('sender', anonymous=False)
+image_list = sorted(os.listdir(curr_path / 'bdd100k/images/100k/val/'))
+
+# Warmup
+frame = cv2.imread(str(curr_path / 'bdd100k/images/100k/val/b1c9c847-3bda4659.jpg'))
+image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
+image_message.header.stamp = rospy.Time.now()
+image_message.header.frame_id = "None"
+counter = 0
+
+# print(f"Warming up!")
+# while counter<5:
+#     counter +=1
+#     image_pub.publish(image_message)
+#     time.sleep(1.5)
+time.sleep(3.5)
+print(f"Ready for inference!")
+counter = -1
+color_red = '\033[1;31;48m'
+reset = '\033[1;37;0m'
+receiver = Receiver()
+first_run = 1
+b = ""
+while not(rospy.is_shutdown()) and counter < n_images-1:
+    if (receiver.received_det and receiver.received_drivable and receiver.received_lane) or first_run:
+        if not(first_run):
+            # Salvar variaveis
+            pass
+        first_run = 0
+        counter += 1
+        image_path = str(curr_path / 'bdd100k/images/100k/val' / image_list[counter])
+        frame = cv2.imread(image_path)
+        image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
+        image_message.header.stamp = rospy.Time.now()
+        image_message.header.frame_id = image_list[counter]
+        image_pub.publish(image_message)
+        receiver.reset_all()
+    panoptic_state = isAllEmpty(receiver.panoptic)
+    bbox_list = receiver.BBoxes.bboxes.BBoxList
+    bbox_classes = receiver.BBoxes.bboxes.BBoxList
+    a = f"Sended: {color_red}{image_list[counter]}{reset}\nSegmentation: {color_red}{receiver.seg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}"
+    if a != b:
+        b = a
+        print(a)
+    # print(f"Detection: {receiver.received_det}  |  Drivable: {receiver.received_drivable}  |  Lanes: {receiver.received_lane}")
+    time.sleep(0.1)
+    # print(f"Sended: {color_red}{image_list[counter]}{reset}\nSegmentation: {color_red}{receiver.seg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}")
+    # if not(panoptic_state):
+    #     for key in receiver.panoptic:
+
+
+
+
+
+
+
+# Determinar numero de imagens -argparse
+# Enviar imagem
+# Receber e dividir por det2d, drivable e lane
+
+# Warmup
