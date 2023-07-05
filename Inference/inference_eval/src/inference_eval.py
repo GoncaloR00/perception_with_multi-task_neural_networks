@@ -22,7 +22,8 @@ curr_path = Path(__file__).parent
 mode_obj_dect = 1
 mode_drivable = 1
 mode_lane = 1
-
+save_path = 'YolopV2/labels/'
+save_path = str(curr_path / save_path) + '/'
 with open(curr_path / 'bdd100k.yaml') as f:
     data = yaml.load(f, Loader=SafeLoader)
 
@@ -96,14 +97,14 @@ class Receiver:
             # Clear previous masks
             self.panoptic = copy.deepcopy(void_panoptic)
             for idx, seg_class in enumerate(msg.ClassList):
-                if seg_class.data == "lane divider":
-                    self.received_lane = 1
-                if seg_class.data == "road":
-                    self.received_drivable = 1
                 if len(self.panoptic[seg_class.data]) == 0:
                     self.panoptic[seg_class.data] = [self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough')]
                 else:
                     self.panoptic[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
+                if seg_class.data == "lane divider":
+                    self.received_lane = 1
+                if seg_class.data == "road":
+                    self.received_drivable = 1
 
 
 
@@ -132,17 +133,33 @@ reset = '\033[1;37;0m'
 receiver = Receiver()
 first_run = 1
 b = ""
+last_time = time.time()
 while not(rospy.is_shutdown()) and counter < n_images-1:
+    new_time = time.time()
+    if new_time - last_time > 2:
+        image_pub.publish(image_message)
     if ((receiver.received_det or not(mode_obj_dect)) and (receiver.received_drivable or not(mode_drivable)) and (receiver.received_lane or not(mode_lane))) or first_run:
         if not(first_run):
             if mode_obj_dect:
                 bbox_list = receiver.BBoxes.BBoxList
                 bbox_classes = receiver.BBoxes.BBoxList
+                # E se não detetar??
             if mode_drivable:
-                pass
+                mask_drivable = receiver.panoptic["road"][0]
+                #TODO mudar isto para incluir todas as mascaras!!!!
+                # print('mask drivable')
+                # print(mask_drivable)
+                # cv2.imshow('teste', mask_drivable)
+                path = save_path + 'drivable/masks/' + image_list[counter]
+                print(path)
+                cv2.imwrite(path, mask_drivable)
+                # E se não detetar??
             if mode_lane:
-                pass
-            # Save variables
+                mask_lane = receiver.panoptic["lane divider"][0]
+                # print('mask lane')
+                # print(mask_lane)
+                cv2.imwrite(save_path + 'lane/masks/' + image_list[counter], mask_lane)
+                # E se não detetar??
         first_run = 0
         counter += 1
         image_path = str(curr_path / 'bdd100k/images/100k/val' / image_list[counter])
@@ -153,7 +170,6 @@ while not(rospy.is_shutdown()) and counter < n_images-1:
         image_pub.publish(image_message)
         receiver.reset_all()
     panoptic_state = isAllEmpty(receiver.panoptic)
-    
     a = f"Sended: {color_red}{image_list[counter]}{reset}\nSegmentation: {color_red}{receiver.seg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}"
     if a != b:
         b = a

@@ -6,3 +6,4 @@ Inference/inference_eval/src/raw/
 *.pt
 *.torchscript
 *.engine
+Inference/inference_eval/src/YolopV2
