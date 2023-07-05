@@ -19,6 +19,10 @@ n_images = 10
 topic = '/cameras/evaluation'
 curr_path = Path(__file__).parent
 
+mode_obj_dect = 1
+mode_drivable = 1
+mode_lane = 1
+
 with open(curr_path / 'bdd100k.yaml') as f:
     data = yaml.load(f, Loader=SafeLoader)
 
@@ -92,7 +96,6 @@ class Receiver:
             # Clear previous masks
             self.panoptic = copy.deepcopy(void_panoptic)
             for idx, seg_class in enumerate(msg.ClassList):
-                print(seg_class.data)
                 if seg_class.data == "lane divider":
                     self.received_lane = 1
                 if seg_class.data == "road":
@@ -130,10 +133,16 @@ receiver = Receiver()
 first_run = 1
 b = ""
 while not(rospy.is_shutdown()) and counter < n_images-1:
-    if (receiver.received_det and receiver.received_drivable and receiver.received_lane) or first_run:
+    if ((receiver.received_det or not(mode_obj_dect)) and (receiver.received_drivable or not(mode_drivable)) and (receiver.received_lane or not(mode_lane))) or first_run:
         if not(first_run):
-            # Salvar variaveis
-            pass
+            if mode_obj_dect:
+                bbox_list = receiver.BBoxes.BBoxList
+                bbox_classes = receiver.BBoxes.BBoxList
+            if mode_drivable:
+                pass
+            if mode_lane:
+                pass
+            # Save variables
         first_run = 0
         counter += 1
         image_path = str(curr_path / 'bdd100k/images/100k/val' / image_list[counter])
@@ -144,8 +153,7 @@ while not(rospy.is_shutdown()) and counter < n_images-1:
         image_pub.publish(image_message)
         receiver.reset_all()
     panoptic_state = isAllEmpty(receiver.panoptic)
-    bbox_list = receiver.BBoxes.bboxes.BBoxList
-    bbox_classes = receiver.BBoxes.bboxes.BBoxList
+    
     a = f"Sended: {color_red}{image_list[counter]}{reset}\nSegmentation: {color_red}{receiver.seg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}"
     if a != b:
         b = a
