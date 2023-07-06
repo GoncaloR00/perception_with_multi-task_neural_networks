@@ -14,8 +14,9 @@ from yaml import SafeLoader
 import numpy as np
 import math
 import os
+import json
 
-n_images = 10
+n_images = 5
 topic = '/cameras/evaluation'
 curr_path = Path(__file__).parent
 
@@ -87,6 +88,7 @@ class Receiver:
         self.received_det = 0
         self.received_lane = 0
         self.received_drivable = 0
+        print('Reset!')
     def detection2dCallback(self, msg):
         self.BBoxes = msg
         self.det2d_frameId = msg.frame_id
@@ -115,17 +117,18 @@ image_list = sorted(os.listdir(curr_path / 'bdd100k/images/100k/val/'))
 
 # Warmup
 frame = cv2.imread(str(curr_path / 'bdd100k/images/100k/val/b1c9c847-3bda4659.jpg'))
-image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
-image_message.header.stamp = rospy.Time.now()
-image_message.header.frame_id = "None"
 counter = 0
+# Wait for the other node to start
+time.sleep(2)
+print(f"Warming up!")
+while counter<10:
+    counter +=1
+    image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
+    image_message.header.stamp = rospy.Time.now()
+    image_message.header.frame_id = "None"
+    image_pub.publish(image_message)
+    time.sleep(1.5)
 
-# print(f"Warming up!")
-# while counter<5:
-#     counter +=1
-#     image_pub.publish(image_message)
-#     time.sleep(1.5)
-time.sleep(3.5)
 print(f"Ready for inference!")
 counter = -1
 color_red = '\033[1;31;48m'
@@ -134,19 +137,32 @@ receiver = Receiver()
 first_run = 1
 b = ""
 last_time = time.time()
-while not(rospy.is_shutdown()) and counter < n_images-1:
+boxes = {}
+pbar = tqdm(total=n_images)
+while not(rospy.is_shutdown()) and counter < n_images:
     new_time = time.time()
-    if new_time - last_time > 2:
-        image_pub.publish(image_message)
     if ((receiver.received_det or not(mode_obj_dect)) and (receiver.received_drivable or not(mode_drivable)) and (receiver.received_lane or not(mode_lane))) or first_run:
+        last_time = new_time
         if not(first_run):
             if mode_obj_dect:
+                boxes[image_list[counter]] = {}
+                boxes[image_list[counter]]['Bboxes'] = {}
                 bbox_list = receiver.BBoxes.BBoxList
-                bbox_classes = receiver.BBoxes.BBoxList
+                bbox_classes = receiver.BBoxes.ClassList
+                bbox_start_time = receiver.BBoxes.start_stamp
+                bbox_end_time = receiver.BBoxes.end_stamp
+                boxes[image_list[counter]]['Start'] = bbox_start_time.to_sec()
+                boxes[image_list[counter]]['End'] = bbox_end_time.to_sec()
+                for idx_cls, classe in enumerate(bbox_classes):
+                    if classe.data in boxes[image_list[counter]]['Bboxes']:
+                        boxes[image_list[counter]]['Bboxes'][classe.data].append((bbox_list[idx_cls].Px1, bbox_list[idx_cls].Py1, bbox_list[idx_cls].Px2, bbox_list[idx_cls].Py2))
+                    else:
+                        boxes[image_list[counter]]['Bboxes'][classe.data] = [(bbox_list[idx_cls].Px1, bbox_list[idx_cls].Py1, bbox_list[idx_cls].Px2, bbox_list[idx_cls].Py2)]
                 # E se não detetar??
             if mode_drivable:
                 mask_drivable = receiver.panoptic["road"][0]
                 #TODO mudar isto para incluir todas as mascaras!!!!
+
                 # print('mask drivable')
                 # print(mask_drivable)
                 # cv2.imshow('teste', mask_drivable)
@@ -160,6 +176,7 @@ while not(rospy.is_shutdown()) and counter < n_images-1:
                 # print(mask_lane)
                 cv2.imwrite(save_path + 'lane/masks/' + image_list[counter], mask_lane)
                 # E se não detetar??
+            pbar.update(1)
         first_run = 0
         counter += 1
         image_path = str(curr_path / 'bdd100k/images/100k/val' / image_list[counter])
@@ -169,6 +186,15 @@ while not(rospy.is_shutdown()) and counter < n_images-1:
         image_message.header.frame_id = image_list[counter]
         image_pub.publish(image_message)
         receiver.reset_all()
+    elif new_time - last_time > 2:
+        print('Retrying!')
+        last_time = new_time
+        frame = cv2.imread(image_path)
+        image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
+        image_message.header.stamp = rospy.Time.now()
+        image_message.header.frame_id = image_list[counter]
+        image_pub.publish(image_message)
+
     panoptic_state = isAllEmpty(receiver.panoptic)
     a = f"Sended: {color_red}{image_list[counter]}{reset}\nSegmentation: {color_red}{receiver.seg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}"
     if a != b:
@@ -179,8 +205,13 @@ while not(rospy.is_shutdown()) and counter < n_images-1:
     # print(f"Sended: {color_red}{image_list[counter]}{reset}\nSegmentation: {color_red}{receiver.seg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}")
     # if not(panoptic_state):
     #     for key in receiver.panoptic:
-
-
+# json_object = json.dump(boxes)
+pbar.close()
+json_object = json.dumps(boxes, indent = 4) 
+if mode_obj_dect:
+    with open(str(curr_path / "sample.json"), "w") as outfile:
+        outfile.write(json_object)
+    print('saved')
 
 
 

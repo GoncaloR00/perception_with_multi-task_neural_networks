@@ -42,7 +42,9 @@ class InferenceNode:
             image_stamp = msg.header.stamp
             image_frameId = msg.header.frame_id
             self.inference.load_image(image)
+            start_time = rospy.get_rostime()
             detections_2d, segmentations = self.inference.infer()
+            end_time = rospy.get_rostime()
             if not(detections_2d is None):
                 (det2d_class_list, det2d_list) = detections_2d
                 detect2d_msg = detect2d()
@@ -62,6 +64,8 @@ class InferenceNode:
                 detect2d_msg.ClassList = strings
                 detect2d_msg.stamp = image_stamp
                 detect2d_msg.frame_id = image_frameId
+                detect2d_msg.start_stamp = start_time
+                detect2d_msg.end_stamp = end_time
                 self.detection2d_pub.publish(detect2d_msg)
             if not(segmentations is None):
                 ctg_msg = String()
@@ -82,6 +86,8 @@ class InferenceNode:
                 segmentation_msg.Category = ctg_msg
                 segmentation_msg.stamp = image_stamp
                 segmentation_msg.frame_id = image_frameId
+                segmentation_msg.start_stamp = start_time
+                segmentation_msg.end_stamp = end_time
                 self.segmentation_pub.publish(segmentation_msg)
         time_b = time.time()
         print(f"Tempo geral: {time_b-time_a}")
