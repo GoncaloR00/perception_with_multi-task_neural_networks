@@ -9,7 +9,7 @@ import json
 import pandas as pd
 import cv2
 
-n_images = 4
+n_images = 15
 preds_path = 'YolopV2/labels/'
 det_filename = 'bboxes.json'
 gt_path = 'bdd100k/labels'
@@ -25,6 +25,7 @@ def f1_score(TP, FP, FN):
     return TP/(TP+0.5*(FP+FN))
 
 def associator(gt_bboxes, pred_bboxes, conf, type:str):
+    # print(f"Pred size = {len(pred_bboxes)}  |  Gt size = {len(gt_bboxes)}")
     assert len(pred_bboxes) == len(conf), f"The quantity of boxes doesn't match the number of confidence values"
     # assert len(conf) != 0, f'Cannot associate boxes: Empty prediction list'
     # Reorganize by confidence value
@@ -89,7 +90,7 @@ def associator(gt_bboxes, pred_bboxes, conf, type:str):
             del gt_bboxes[max_idx[0]]
             del pred_bboxes[max_idx[1]]
             del conf[max_idx[1]]
-        if iou_table.shape[1]<=0:
+        if iou_table.shape[1]<=0 or iou_table.shape[0] == 0:
             break
         maxim = np.max(iou_table)
     for box in gt_bboxes:
@@ -101,7 +102,11 @@ def associator(gt_bboxes, pred_bboxes, conf, type:str):
 def IoU_mask(maskA, maskB):
     intersection = np.logical_and(maskA, maskB)
     union = np.logical_or(maskA, maskB)
-    iou = np.sum(intersection) / np.sum(union)
+    sum_union = np.sum(union)
+    if sum_union != 0:
+        iou = np.sum(intersection) / sum_union
+    else:
+        iou = 0
     return iou
     
 def IoU_bbox(boxA, boxB):
@@ -178,7 +183,12 @@ gt_drivable_list = sorted(os.listdir(curr_path / gt_path/'drivable/masks'))
 gt_lane_list = sorted(os.listdir(curr_path / gt_path/'lane/masks'))
 drivable_list = sorted(os.listdir(drivable_path))
 lane_list = sorted(os.listdir(lane_path))
-columns_Resume = pd.MultiIndex.from_tuples([('Object detection','Precision@50'),('Object detection','Recall@50'),('Object detection','Precision@75'),('Object detection','Recall@75'),('Object detection','Ti'),('Object detection','Tf'),('Drivable area','IoU'),('Drivable area','Ti'),('Drivable area','Tf'),('Lane marking','IoU'),('Lane marking','Ti'),('Lane marking','Tf')])
+columns_Resume = pd.MultiIndex.from_tuples([('Object detection','Precision@50'),('Object detection','Recall@50'),
+                                            ('Object detection','Precision@75'),('Object detection','Recall@75'),
+                                            ('Object detection','Ti'),('Object detection','Tf'),
+                                            ('Drivable area','IoU'),('Drivable area','Ti'),('Drivable area','Tf'),
+                                            ('Lane marking','IoU'),('Lane marking','Ti'),('Lane marking','Tf')
+                                            ])
 a = pd.MultiIndex.from_tuples([('a','a')])
 df = pd.DataFrame(columns=columns_Resume, index=a)
 df = df.drop(['a'])
@@ -239,15 +249,63 @@ for image_idx in range(n_images):
     gt_mask = gt_mask.astype(np.uint8)
     pred_mask = cv2.imread(lane_path + '/' + new_name)
     iou = IoU_mask(gt_mask, pred_mask)
-    df.loc[(image_name,'Lane'),('Lane Marking','IoU')] = iou
-    df.loc[(image_name,'Lane'),('Lane Marking','Ti')] = drivable[image_name]['Start']
-    df.loc[(image_name,'Lane'),('Lane Marking','Tf')] = drivable[image_name]['End']
-    cv2.imshow('teste', gt_mask)
-    cv2.waitKey(0)
+    df.loc[(image_name,'Lane'),('Lane marking','IoU')] = iou
+    df.loc[(image_name,'Lane'),('Lane marking','Ti')] = lane[image_name]['Start']
+    df.loc[(image_name,'Lane'),('Lane marking','Tf')] = lane[image_name]['End']
+
+    # cv2.imshow('teste', gt_mask)
+    # cv2.waitKey(0)
 
 
+classes_list = [*set([df.index[x][1][:] for x in range(len(df.index))])]
+classes_list.remove('Lane')
+classes_list.remove('Drivable')
+columns_Resume = pd.MultiIndex.from_tuples([('Object detection','AP@50'),('Object detection','AP@75'),#('Object detection','Ti'),('Object detection','Tf'),
+                                            ('Drivable area','IoU'),#('Drivable area','Ti'),('Drivable area','Tf'),
+                                            ('Lane marking','IoU')#,('Lane marking','Ti'),('Lane marking','Tf')
+                                            ])
+df2 = pd.DataFrame(columns=columns_Resume)
+
+for classe in classes_list:
+    for tresh in ['50', '75']:
+        # Get precision and recall values
+        p_50 = df.loc[(slice(None), classe),('Object detection','Precision@'+tresh)].tolist()
+        r_50 = df.loc[(slice(None), classe),('Object detection','Recall@'+tresh)].tolist()
+        # Organize by recall order
+        r_50, p_50 = zip(*sorted(zip(r_50, p_50)))
+        # Get average precision
+        ap = 0
+        for idx in range(len(p_50)):
+            if idx>=1:
+                ap += (r_50[idx]-r_50[idx-1])*p_50[idx]
+        df2.loc[(classe),('Object detection','AP@'+tresh)] = ap
 
 
-# Object detection test
-with pd.ExcelWriter('output.xlsx') as writer:  
-    df.to_excel(writer, sheet_name='AllData')  
+lane_iou = np.average(df.loc[(slice(None), 'Lane'),('Lane marking','IoU')].tolist())
+df2.loc[('Lane'),('Lane marking','IoU')] = lane_iou
+drivable_iou = np.average(df.loc[(slice(None), 'Drivable'),('Drivable area','IoU')].tolist())
+df2.loc[('Drivable'),('Drivable area','IoU')] = drivable_iou
+
+columns_Resume = pd.MultiIndex.from_tuples([('Object detection','mAP@50'),('Object detection','mAP@75'),#('Object detection','Ti'),('Object detection','Tf'),
+                                            ('Drivable area','mIoU'),#('Drivable area','Ti'),('Drivable area','Tf'),
+                                            ('Lane marking','mIoU')#,('Lane marking','Ti'),('Lane marking','Tf')
+                                            ])
+df3 = pd.DataFrame(columns=columns_Resume)
+
+for tresh in ['50', '75']:
+    ap_values = np.asarray(df2[('Object detection','AP@'+tresh)].tolist())
+    ii = ~np.isnan(ap_values)
+    m_ap = np.average(ap_values[ii])
+    df3.loc['',('Object detection','mAP@'+tresh)] = m_ap
+
+for t in ['Drivable area', 'Lane marking']:
+    iou_values = np.asarray(df2[(t,'IoU')].tolist())
+    ii = ~np.isnan(iou_values)
+    m_iou = np.average(iou_values[ii])
+    df3.loc['',(t,'mIoU')] = m_iou
+
+with pd.ExcelWriter('output.xlsx') as writer:
+    df.to_excel(writer, sheet_name='Raw')   
+    df2.to_excel(writer, sheet_name='ByClass')
+    df3.to_excel(writer, sheet_name='Results')
+
