@@ -105,8 +105,12 @@ class Receiver:
                     self.panoptic[seg_class.data].append(self.bridge.imgmsg_to_cv2(msg.MaskList[idx], desired_encoding='passthrough'))
                 if seg_class.data == "lane divider":
                     self.received_lane = 1
+                    self.lane_start = msg.start_stamp
+                    self.lane_end = msg.end_stamp
                 if seg_class.data == "road":
                     self.received_drivable = 1
+                    self.drivable_start = msg.start_stamp
+                    self.drivable_end = msg.end_stamp
 
 
 
@@ -138,6 +142,8 @@ first_run = 1
 b = ""
 last_time = time.time()
 boxes = {}
+lanes = {}
+drivable = {}
 pbar = tqdm(total=n_images)
 while not(rospy.is_shutdown()) and counter < n_images:
     new_time = time.time()
@@ -161,20 +167,25 @@ while not(rospy.is_shutdown()) and counter < n_images:
                 # E se não detetar??
             if mode_drivable:
                 mask_drivable = receiver.panoptic["road"][0]
+                drivable[image_list[counter]] = {}
+                drivable[image_list[counter]]['Start'] = receiver.drivable_start.to_sec()
+                drivable[image_list[counter]]['End'] = receiver.drivable_end.to_sec()
                 #TODO mudar isto para incluir todas as mascaras!!!!
 
                 # print('mask drivable')
                 # print(mask_drivable)
                 # cv2.imshow('teste', mask_drivable)
-                path = save_path + 'drivable/masks/' + image_list[counter]
-                print(path)
+                path = save_path + 'drivable/masks/' + image_list[counter].split('.')[0] + '.png'
                 cv2.imwrite(path, mask_drivable)
                 # E se não detetar??
             if mode_lane:
                 mask_lane = receiver.panoptic["lane divider"][0]
+                lanes[image_list[counter]] = {}
+                lanes[image_list[counter]]['Start'] = receiver.lane_start.to_sec()
+                lanes[image_list[counter]]['End'] = receiver.lane_end.to_sec()
                 # print('mask lane')
                 # print(mask_lane)
-                cv2.imwrite(save_path + 'lane/masks/' + image_list[counter], mask_lane)
+                cv2.imwrite(save_path + 'lane/masks/' + image_list[counter].split('.')[0] + '.png', mask_lane)
                 # E se não detetar??
             pbar.update(1)
         first_run = 0
@@ -194,23 +205,27 @@ while not(rospy.is_shutdown()) and counter < n_images:
         image_message.header.stamp = rospy.Time.now()
         image_message.header.frame_id = image_list[counter]
         image_pub.publish(image_message)
-
     panoptic_state = isAllEmpty(receiver.panoptic)
     a = f"Sended: {color_red}{image_list[counter]}{reset}\nSegmentation: {color_red}{receiver.seg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}"
     if a != b:
         b = a
         print(a)
-    # print(f"Detection: {receiver.received_det}  |  Drivable: {receiver.received_drivable}  |  Lanes: {receiver.received_lane}")
     time.sleep(0.1)
-    # print(f"Sended: {color_red}{image_list[counter]}{reset}\nSegmentation: {color_red}{receiver.seg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}")
-    # if not(panoptic_state):
-    #     for key in receiver.panoptic:
-# json_object = json.dump(boxes)
 pbar.close()
-json_object = json.dumps(boxes, indent = 4) 
 if mode_obj_dect:
-    with open(str(curr_path / "sample.json"), "w") as outfile:
-        outfile.write(json_object)
+    json_bboxes = json.dumps(boxes, indent = 4) 
+    with open(str(curr_path / 'YolopV2/labels/det_20'/ "bboxes.json"), "w") as outfile:
+        outfile.write(json_bboxes)
+if mode_drivable:
+    json_drivable = json.dumps(drivable, indent = 4) 
+    with open(str(curr_path / 'YolopV2/labels/drivable'/  "drivable.json"), "w") as outfile:
+        outfile.write(json_drivable)
+
+if mode_lane:
+    json_lane = json.dumps(lanes, indent = 4) 
+    with open(str(curr_path / 'YolopV2/labels/lane'/  "lane.json"), "w") as outfile:
+        outfile.write(json_lane)
+
     print('saved')
 
 
@@ -218,7 +233,5 @@ if mode_obj_dect:
 
 
 # Determinar numero de imagens -argparse
-# Enviar imagem
-# Receber e dividir por det2d, drivable e lane
 
-# Warmup
+# Adicionar mensagens de drivable area e lane marking
