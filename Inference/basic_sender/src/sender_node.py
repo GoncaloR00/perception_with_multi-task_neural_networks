@@ -22,26 +22,26 @@ if (cap.isOpened()== False):
 rospy.init_node('sender', anonymous=False)
 
 # Read until video is completed
-while(cap.isOpened() and not rospy.is_shutdown()):
-    # Capture frame-by-frame
-    ret, frame = cap.read()
-    # cv2.imwrite('/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/frame.png', frame)
-    if ret == True:
-      image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
-      image_message.header.stamp = rospy.Time.now()
-      image_pub.publish(image_message)
-    # Break the loop
-    else: 
-      break
-    time.sleep(1/fps)
-cv2.destroyAllWindows()
+# while(cap.isOpened() and not rospy.is_shutdown()):
+#     # Capture frame-by-frame
+#     ret, frame = cap.read()
+#     # cv2.imwrite('/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/frame.png', frame)
+#     if ret == True:
+#       image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
+#       image_message.header.stamp = rospy.Time.now()
+#       image_pub.publish(image_message)
+#     # Break the loop
+#     else: 
+#       break
+#     time.sleep(1/fps)
+# cv2.destroyAllWindows()
 
 
 # # TEMPORARIO
 
-# frame = cv2.imread("/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/example.jpg")
-# while (not rospy.is_shutdown()):
-#   image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
-#   image_message.header.stamp = rospy.Time.now()
-#   image_pub.publish(image_message)
-#   time.sleep(1/fps)
+frame = cv2.imread("/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/example1.jpg")
+while (not rospy.is_shutdown()):
+  image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
+  image_message.header.stamp = rospy.Time.now()
+  image_pub.publish(image_message)
+  time.sleep(1/fps)

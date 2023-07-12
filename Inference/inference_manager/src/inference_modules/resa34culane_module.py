@@ -7,17 +7,22 @@ import torch
 model_img_size = (288, 800)
 model_loader_name = "resa_34_culane_cuda_half"
 
-ori_img_h= 540 - 240
-ori_img_w = 960
 img_height= 288
 img_width = 800
-sample_y=range(ori_img_h-2, 0, -5)
-sample_y2=range(ori_img_h-2, 0, -1)
+divider = 3
 
 def output_organizer(original_output, original_img_size, model_img_size):
+    ori_img_h, ori_img_w = original_img_size
+    val = ori_img_h - int(ori_img_w / divider) # For video
+    val = 0 # For evaluation
+    ori_img_h = ori_img_h - val
+    # ori_img_h= 540 - 240
+    # ori_img_w = 960
+    sample_y=range(ori_img_h-2, 0, -10)
+    sample_y2=range(ori_img_h-2, 0, -1)
     time_a = time.time()
-    lanes_a=get_lanes(original_output)
-    lanes = [lane.to_array() for lane in lanes_a[0]]
+    lanes_a=get_lanes(original_output, ori_img_h, ori_img_w, sample_y)
+    lanes = [lane.to_array(sample_y2, ori_img_h, ori_img_w) for lane in lanes_a[0]]
     # print(lanes)
     if len(lanes) >0:
         mask = np.zeros((original_img_size[0], original_img_size[1],3), dtype=np.uint8)
@@ -26,12 +31,13 @@ def output_organizer(original_output, original_img_size, model_img_size):
                 if x <= 0 or y <= 0:
                     continue
                 x, y = int(x), int(y)
-                tik = int(y**1.5/700)
-                if tik > 15:
-                    tik = 15
+                # 700 e 15 -> transformar em relação a tamanho
+                tik = int(y**1.5/500)
+                if tik > 25:
+                    tik = 25
                 if tik < 0:
                     tik = 0
-                mask[240:] = cv2.circle(mask[240:], (x, y), 0, (255, 255, 255), tik)
+                mask[val:] = cv2.circle(mask[val:], (x, y), 0, (255, 255, 255), tik)
         seg_list =[mask[:,:,0]]
         seg_classes = ["lane divider"]
     else:
@@ -48,8 +54,11 @@ def output_organizer(original_output, original_img_size, model_img_size):
 
 def transforms(image, cuda:bool, device, half):
     original_img_size = (image.shape[0],image.shape[1])
+    ori_img_h, ori_img_w = original_img_size
+    val = ori_img_h - int(ori_img_w / divider) # For video
+    val = 0 # For evaluation
     img_0 = copy.deepcopy(image)
-    img_0 = cv2.resize(img_0[240:], (model_img_size[1], model_img_size[0]))
+    img_0 = cv2.resize(img_0[val:], (model_img_size[1], model_img_size[0]))
     img = torch.Tensor(img_0)
     img = img.permute(2,0,1)
     img = img.unsqueeze(0)
@@ -86,7 +95,7 @@ class Lane:
         lane_xs[(lane_ys < self.min_y) | (lane_ys > self.max_y)] = self.invalid_value
         return lane_xs
 
-    def to_array(self, sample_y=sample_y2, ori_img_h=ori_img_h, ori_img_w = ori_img_w):
+    def to_array(self, sample_y, ori_img_h, ori_img_w):
         img_w, img_h = ori_img_w, ori_img_h
         ys = np.array(sample_y) / float(img_h)
         xs = self(ys)
@@ -106,7 +115,7 @@ class Lane:
         self.curr_iter = 0
         raise StopIteration
 
-def get_lanes(output):
+def get_lanes(output, ori_img_h, ori_img_w, sample_y):
     segs = output['seg']
     segs = F.softmax(segs, dim=1)
     segs = segs.detach().cpu().numpy()
@@ -119,12 +128,12 @@ def get_lanes(output):
 
     ret = []
     for seg, exist in zip(segs, exists):
-        lanes = probmap2lane(seg, exist)
+        lanes = probmap2lane(seg, ori_img_h, ori_img_w, sample_y, exist)
         ret.append(lanes)
     return ret
 
 # def probmap2lane(probmaps, exists=None, cut_height=0, ori_img_h=720, ori_img_w = 1280, img_height=288, img_width = 800, sample_y=range(588, 230, -20), thr=0.6):
-def probmap2lane(probmaps, exists=None, cut_height=0, ori_img_h=ori_img_h, ori_img_w = ori_img_w, img_height=img_height, img_width = img_width, sample_y=sample_y, thr=0.6):
+def probmap2lane(probmaps, ori_img_h, ori_img_w, sample_y, exists=None, cut_height=0, img_height=img_height, img_width = img_width, thr=0.6):
 # def probmap2lane(probmaps, exists=None, cut_height=240, ori_img_h=300, ori_img_w = 800, img_height=288, img_width = 800, sample_y=range(589, 230, -20), thr=0.6):
     lanes = []
     probmaps = probmaps[1:, ...]
