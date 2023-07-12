@@ -14,7 +14,7 @@ divider = 3
 def output_organizer(original_output, original_img_size, model_img_size):
     ori_img_h, ori_img_w = original_img_size
     val = ori_img_h - int(ori_img_w / divider) # For video
-    val = 0 # For evaluation
+    # val = 0 # For evaluation
     ori_img_h = ori_img_h - val
     # ori_img_h= 540 - 240
     # ori_img_w = 960
@@ -56,7 +56,7 @@ def transforms(image, cuda:bool, device, half):
     original_img_size = (image.shape[0],image.shape[1])
     ori_img_h, ori_img_w = original_img_size
     val = ori_img_h - int(ori_img_w / divider) # For video
-    val = 0 # For evaluation
+    # val = 0 # For evaluation
     img_0 = copy.deepcopy(image)
     img_0 = cv2.resize(img_0[val:], (model_img_size[1], model_img_size[0]))
     img = torch.Tensor(img_0)
@@ -142,7 +142,7 @@ def probmap2lane(probmaps, ori_img_h, ori_img_w, sample_y, exists=None, cut_heig
     for probmap, exist in zip(probmaps, exists):
         if exist == 0:
             continue
-        probmap = cv2.blur(probmap, (9, 9), borderType=cv2.BORDER_REPLICATE)
+        probmap = cv2.blur(probmap.astype(np.float32), (9, 9), borderType=cv2.BORDER_REPLICATE)
         ori_h = ori_img_h - cut_height
         coord = []
         for y in sample_y:

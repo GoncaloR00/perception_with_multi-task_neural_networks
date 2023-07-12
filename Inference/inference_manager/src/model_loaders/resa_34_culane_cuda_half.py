@@ -1264,9 +1264,9 @@ def load(original_img_size, model_img_size, model_path):
     net = torch.nn.parallel.DataParallel(
                     net, device_ids = range(1)).cuda()
     load_network(net, load_from)
-    # model = net.half()
+    model = net.half()
     model = net
     cuda = 1
-    half = 0
+    half = 1
     engine = 0
     return model, cuda, half, engine
