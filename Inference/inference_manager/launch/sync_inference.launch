@@ -69,9 +69,15 @@
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -sr $(arg front_camera)"/>
     </group> -->
-    <group ns='frontcamera/resa34culane'>
+    <!-- <group ns='frontcamera/resa34culane'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_resa34culane) -mp $(arg mp_resa34culane) -sr $(arg front_camera)"/>
+    </group> -->
+    <group ns='frontcamera/multi-model'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node_resa34culane" type="inference_node.py" output="screen" args="-fn $(arg fn_resa34culane) -mp $(arg mp_resa34culane) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node_segformer" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node_yolov5_det" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
     </group>
 
 </launch>

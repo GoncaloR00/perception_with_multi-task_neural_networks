@@ -14,7 +14,7 @@ divider = 3
 def output_organizer(original_output, original_img_size, model_img_size):
     ori_img_h, ori_img_w = original_img_size
     val = ori_img_h - int(ori_img_w / divider) # For video
-    # val = 0 # For evaluation
+    val = 0 # For evaluation
     ori_img_h = ori_img_h - val
     # ori_img_h= 540 - 240
     # ori_img_w = 960
@@ -24,8 +24,8 @@ def output_organizer(original_output, original_img_size, model_img_size):
     lanes_a=get_lanes(original_output, ori_img_h, ori_img_w, sample_y)
     lanes = [lane.to_array(sample_y2, ori_img_h, ori_img_w) for lane in lanes_a[0]]
     # print(lanes)
+    mask = np.zeros((original_img_size[0], original_img_size[1],3), dtype=np.uint8)
     if len(lanes) >0:
-        mask = np.zeros((original_img_size[0], original_img_size[1],3), dtype=np.uint8)
         for lane in lanes:
             for x, y in lane:
                 if x <= 0 or y <= 0:
@@ -38,11 +38,11 @@ def output_organizer(original_output, original_img_size, model_img_size):
                 if tik < 0:
                     tik = 0
                 mask[val:] = cv2.circle(mask[val:], (x, y), 0, (255, 255, 255), tik)
-        seg_list =[mask[:,:,0]]
-        seg_classes = ["lane divider"]
-    else:
-        seg_list = []
-        seg_classes = []
+    seg_list =[mask[:,:,0]]
+    seg_classes = ["lane divider"]
+    # else:
+    #     seg_list = []
+    #     seg_classes = []
     time_b = time.time()
     print(f"Tempo de organização: {time_b-time_a}")
     if len(seg_classes) == 0:
@@ -56,7 +56,7 @@ def transforms(image, cuda:bool, device, half):
     original_img_size = (image.shape[0],image.shape[1])
     ori_img_h, ori_img_w = original_img_size
     val = ori_img_h - int(ori_img_w / divider) # For video
-    # val = 0 # For evaluation
+    val = 0 # For evaluation
     img_0 = copy.deepcopy(image)
     img_0 = cv2.resize(img_0[val:], (model_img_size[1], model_img_size[0]))
     img = torch.Tensor(img_0)

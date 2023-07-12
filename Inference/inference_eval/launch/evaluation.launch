@@ -6,6 +6,7 @@
 
     <!-- Image sources -->
     <arg name="front_camera" default="/cameras/evaluation"/>
+    <arg name="n_images" default="10"/>
     
     <!-- Models -->
     <!-- YolopV2 -->
@@ -27,45 +28,39 @@
     <!-- YoloV8 -->
     <arg name="fn_yolov8_det" default="yolov5sDet_module"/>
     <arg name="mp_yolov8s_det" default="$(find inference_manager)/../../models/yolov8s.torchscript"/>
+    <!-- Resa34 Culane -->
+    <arg name="fn_resa34culane" default="resa34culane_module"/>
+    <arg name="mp_resa34culane" default="$(find inference_manager)/../../models/resa_r34_culane.pth"/>
 
 <!-- ####################################################################### -->
 <!-- ############################### Nodes ################################# -->
 <!-- ####################################################################### -->
     <!-- <node pkg="basic_sender" name="image_sender" type="sender_node.py"/> -->
 
-    <group ns='frontcamera/yolopv2'>
-        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen"/>
+    <!-- <group ns='frontcamera/yolopv2'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn YolopV2 -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolopv2) -mp $(arg mp_yolopv2) -sr $(arg front_camera)"/>
-    </group>
-
-
-    <!-- <group ns='frontcamera/yolov5'>
-        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
-        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
     </group> -->
 
-    <!-- <group ns='frontcamera/yolov5-seg'>
-        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
-        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_seg) -mp $(arg mp_yolov5s_seg) -sr $(arg front_camera)"/>
-    </group> -->
-
-    <!-- <group ns='frontcamera/yolov5|yolov5-seg'>
-        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+    <!-- <group ns='frontcamera/multi-model'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn MultiModel -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
+        <node pkg="inference_manager" name="inference_node_resa34culane" type="inference_node.py" output="screen" args="-fn $(arg fn_resa34culane) -mp $(arg mp_resa34culane) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node_segformer" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -sr $(arg front_camera)"/>
         <node pkg="inference_manager" name="inference_node_yolov5_det" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
-        <node pkg="inference_manager" name="inference_node_yolov5_seg" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_seg) -mp $(arg mp_yolov5s_seg) -sr $(arg front_camera)"/>
-    </group> -->
-    <!-- <group ns='frontcamera/yolov5'>
-        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
-        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det_engine) -sr $(arg front_camera)"/>
     </group> -->
 
-    <!-- <group ns='frontcamera/enet'>
-        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
-        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_enet) -mp $(arg mp_enet) -sr $(arg front_camera)"/>
+    <group ns='frontcamera/single-model'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn SingleModel -nimg $(arg n_images) -obj 0 -l 1 -da 0"/>
+        <node pkg="inference_manager" name="inference_node_resa34culane" type="inference_node.py" output="screen" args="-fn $(arg fn_resa34culane) -mp $(arg mp_resa34culane) -sr $(arg front_camera)"/>
+    </group>
+    <!-- <group ns='frontcamera/single-model'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn SingleModel -nimg $(arg n_images) -obj 0 -l 0 -da 1"/>
+        <node pkg="inference_manager" name="inference_node_segformer" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -sr $(arg front_camera)"/>
     </group> -->
-    <!-- <group ns='frontcamera/segformer'>
-        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
-        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -sr $(arg front_camera)"/>
+    <!-- <group ns='frontcamera/single-model'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn SingleModel -nimg $(arg n_images) -obj 1 -l 0 -da 0"/>
+        <node pkg="inference_manager" name="inference_node_yolov5_det" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
     </group> -->
+
 
 </launch>

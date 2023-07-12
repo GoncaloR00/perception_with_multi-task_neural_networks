@@ -39,6 +39,14 @@ def output_organizer(original_output, original_img_size, model_img_size):
         segmentations = None
     else:
         segmentations = (seg_classes, seg_list, "semantic")
+
+    # Temporary solution for evaluation problem
+    if segmentations is None or not("road" in seg_list):
+        mask = np.zeros(original_img_size, dtype=np.uint8)
+        seg_classes.append("road")
+        seg_list.append(mask)
+        segmentations = (seg_classes, seg_list, "semantic")
+
     detections = None
     return detections, segmentations
 

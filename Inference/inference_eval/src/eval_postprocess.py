@@ -8,9 +8,9 @@ import os
 import json
 import pandas as pd
 import cv2
+import argparse
+import sys
 
-n_images = 199
-preds_path = 'YolopV2/labels/'
 det_filename = 'bboxes.json'
 gt_path = 'bdd100k/labels'
 save_path = './'
@@ -165,147 +165,165 @@ def precision_recall(gt_bboxes, pred_bboxes, conf, iou_tresh, type):
     TP, FP, FN = Evaluation_TFPN(associator(gt_bboxes_send, pred_bboxes_send, conf_send, type),iou_tresh)
     return precision(TP, FP), recall(TP, FN)
 
+if __name__ == '__main__':
 
-curr_path = Path(__file__).parent
-preds_path = str(curr_path / preds_path) + '/'
-det_path = str(curr_path / preds_path /'det_20'/det_filename)
-drivable_path = str(curr_path / preds_path /'drivable/masks')
-lane_path = str(curr_path / preds_path /'lane/masks')
-f = open(str(det_path))
-f2 = open(str(curr_path / gt_path/'det_20/det_val.json'))
-f3 = open(drivable_path + '/../drivable.json')
-f4 = open(lane_path + '/../lane.json')
-detections = json.load(f)
-drivable = json.load(f3)
-lane = json.load(f4)
-gt_detections = json.load(f2)
-gt_drivable_list = sorted(os.listdir(curr_path / gt_path/'drivable/masks'))
-gt_lane_list = sorted(os.listdir(curr_path / gt_path/'lane/masks'))
-drivable_list = sorted(os.listdir(drivable_path))
-lane_list = sorted(os.listdir(lane_path))
-columns_Resume = pd.MultiIndex.from_tuples([('Object detection','Precision@50'),('Object detection','Recall@50'),
-                                            ('Object detection','Precision@75'),('Object detection','Recall@75'),
-                                            ('Object detection','Ti'),('Object detection','Tf'),
-                                            ('Drivable area','IoU'),('Drivable area','Ti'),('Drivable area','Tf'),
-                                            ('Lane marking','IoU'),('Lane marking','Ti'),('Lane marking','Tf')
-                                            ])
-a = pd.MultiIndex.from_tuples([('a','a')])
-df = pd.DataFrame(columns=columns_Resume, index=a)
-df = df.drop(['a'])
-for image_idx in range(n_images):
-    # arranjar outra forma
-    image_name = gt_detections[image_idx]['name'].split('.')[0] + '.jpg'
+    parser = argparse.ArgumentParser(
+                            prog = 'eval_postprocess',
+                            description='This node send an image and receives and\
+                                saves the inference results into a folder')
+    
+    parser.add_argument('-fn', '--folder_name', type=str, 
+                        dest='folder_name', required=True, 
+                        help='Name of the folder with results')
 
-    # Object detection
-    boxes = {}
-    for idx in range(len(gt_detections[image_idx]['labels'])):
-        box = [gt_detections[image_idx]['labels'][idx]['box2d']['x1'], gt_detections[image_idx]['labels'][idx]['box2d']['y1'], gt_detections[image_idx]['labels'][idx]['box2d']['x2'], gt_detections[image_idx]['labels'][idx]['box2d']['y2']]
-        if gt_detections[image_idx]['labels'][idx]['category'] in boxes:
-            boxes[gt_detections[image_idx]['labels'][idx]['category']].append(box)
-        else:
-            boxes[gt_detections[image_idx]['labels'][idx]['category']] = [box]
-    if image_name in detections:
-        # for classe in detections[image_name]['Bboxes']:
-        for classe in boxes:
-            gt_list = boxes[classe]
-            if classe in detections[image_name]['Bboxes']:
-                pred_list = detections[image_name]['Bboxes'][classe]
-                # TODO add conf list
-                conf_list = []
-                conf_list.extend([1] * len(pred_list))
-                pr_50 = precision_recall(gt_list, pred_list, conf_list, 0.5, "box")
-                df.loc[(image_name,classe),('Object detection','Precision@50')] = pr_50[0]
-                df.loc[(image_name,classe),('Object detection','Recall@50')] = pr_50[1]
-                pr_75 = precision_recall(gt_list, pred_list, conf_list, 0.75, "box")
-                df.loc[(image_name,classe),('Object detection','Precision@75')] = pr_75[0]
-                df.loc[(image_name,classe),('Object detection','Recall@75')] = pr_75[1]
-                df.loc[(image_name,classe),('Object detection','Ti')] = detections[image_name]['Start']
-                df.loc[(image_name,classe),('Object detection','Tf')] = detections[image_name]['End']
-            # else:
-            #     pred_list = []
-            #     conf_list = []
-            # pr_50 = precision_recall(gt_list, pred_list, conf_list, 0.5, "box")
-            # df.loc[(image_name,classe),('Object detection','Precision@50')] = pr_50[0]
-            # df.loc[(image_name,classe),('Object detection','Recall@50')] = pr_50[1]
-            # pr_75 = precision_recall(gt_list, pred_list, conf_list, 0.75, "box")
-            # df.loc[(image_name,classe),('Object detection','Precision@75')] = pr_75[0]
-            # df.loc[(image_name,classe),('Object detection','Recall@75')] = pr_75[1]
-            # df.loc[(image_name,classe),('Object detection','Ti')] = detections[image_name]['Start']
-            # df.loc[(image_name,classe),('Object detection','Tf')] = detections[image_name]['End']
-    # Drivable area
-    new_name = image_name.split('.')[0] + '.png'
-    gt_mask = cv2.imread(str(curr_path / gt_path/'drivable/masks/val'/ new_name))
-    gt_mask = (gt_mask != np.max(gt_mask)) * 255
-    gt_mask = gt_mask.astype(np.uint8)
-    pred_mask = cv2.imread(drivable_path + '/' + new_name)
-    iou = IoU_mask(gt_mask, pred_mask)
-    df.loc[(image_name,'Drivable'),('Drivable area','IoU')] = iou
-    df.loc[(image_name,'Drivable'),('Drivable area','Ti')] = drivable[image_name]['Start']
-    df.loc[(image_name,'Drivable'),('Drivable area','Tf')] = drivable[image_name]['End']
+    parser.add_argument('-nimg', '--number_images', type=int, 
+                        dest='number_images', required=True, 
+                        help='Quantity of images for evaluation')
+    arglist = [x for x in sys.argv[1:] if not x.startswith('__')]
+    args = vars(parser.parse_args(args=arglist))
+    
+    n_images = args['number_images']
+    preds_path = args['folder_name'] + '/labels/'
+    curr_path = Path(__file__).parent
+    preds_path = str(curr_path / preds_path) + '/'
+    det_path = str(curr_path / preds_path /'det_20'/det_filename)
+    drivable_path = str(curr_path / preds_path /'drivable/masks')
+    lane_path = str(curr_path / preds_path /'lane/masks')
+    f = open(str(det_path))
+    f2 = open(str(curr_path / gt_path/'det_20/det_val.json'))
+    f3 = open(drivable_path + '/../drivable.json')
+    f4 = open(lane_path + '/../lane.json')
+    detections = json.load(f)
+    drivable = json.load(f3)
+    lane = json.load(f4)
+    gt_detections = json.load(f2)
+    gt_drivable_list = sorted(os.listdir(curr_path / gt_path/'drivable/masks'))
+    gt_lane_list = sorted(os.listdir(curr_path / gt_path/'lane/masks'))
+    drivable_list = sorted(os.listdir(drivable_path))
+    lane_list = sorted(os.listdir(lane_path))
+    columns_Resume = pd.MultiIndex.from_tuples([('Object detection','Precision@50'),('Object detection','Recall@50'),
+                                                ('Object detection','Precision@75'),('Object detection','Recall@75'),
+                                                ('Object detection','Ti'),('Object detection','Tf'),
+                                                ('Drivable area','IoU'),('Drivable area','Ti'),('Drivable area','Tf'),
+                                                ('Lane marking','IoU'),('Lane marking','Ti'),('Lane marking','Tf')
+                                                ])
+    a = pd.MultiIndex.from_tuples([('a','a')])
+    df = pd.DataFrame(columns=columns_Resume, index=a)
+    df = df.drop(['a'])
+    for image_idx in range(n_images):
+        # arranjar outra forma
+        image_name = gt_detections[image_idx]['name'].split('.')[0] + '.jpg'
 
-    # Lane Marking
-    gt_mask = cv2.imread(str(curr_path / gt_path/'lane/colormaps/val'/ new_name))
-    gt_mask = (gt_mask != 0) * 255
-    gt_mask = gt_mask.astype(np.uint8)
-    pred_mask = cv2.imread(lane_path + '/' + new_name)
-    iou = IoU_mask(gt_mask, pred_mask)
-    df.loc[(image_name,'Lane'),('Lane marking','IoU')] = iou
-    df.loc[(image_name,'Lane'),('Lane marking','Ti')] = lane[image_name]['Start']
-    df.loc[(image_name,'Lane'),('Lane marking','Tf')] = lane[image_name]['End']
+        # Object detection
+        boxes = {}
+        for idx in range(len(gt_detections[image_idx]['labels'])):
+            box = [gt_detections[image_idx]['labels'][idx]['box2d']['x1'], gt_detections[image_idx]['labels'][idx]['box2d']['y1'], gt_detections[image_idx]['labels'][idx]['box2d']['x2'], gt_detections[image_idx]['labels'][idx]['box2d']['y2']]
+            if gt_detections[image_idx]['labels'][idx]['category'] in boxes:
+                boxes[gt_detections[image_idx]['labels'][idx]['category']].append(box)
+            else:
+                boxes[gt_detections[image_idx]['labels'][idx]['category']] = [box]
+        if image_name in detections:
+            # for classe in detections[image_name]['Bboxes']:
+            for classe in boxes:
+                gt_list = boxes[classe]
+                if classe in detections[image_name]['Bboxes']:
+                    pred_list = detections[image_name]['Bboxes'][classe]
+                    # TODO add conf list
+                    conf_list = []
+                    conf_list.extend([1] * len(pred_list))
+                    pr_50 = precision_recall(gt_list, pred_list, conf_list, 0.5, "box")
+                    df.loc[(image_name,classe),('Object detection','Precision@50')] = pr_50[0]
+                    df.loc[(image_name,classe),('Object detection','Recall@50')] = pr_50[1]
+                    pr_75 = precision_recall(gt_list, pred_list, conf_list, 0.75, "box")
+                    df.loc[(image_name,classe),('Object detection','Precision@75')] = pr_75[0]
+                    df.loc[(image_name,classe),('Object detection','Recall@75')] = pr_75[1]
+                    df.loc[(image_name,classe),('Object detection','Ti')] = detections[image_name]['Start']
+                    df.loc[(image_name,classe),('Object detection','Tf')] = detections[image_name]['End']
+                # else:
+                #     pred_list = []
+                #     conf_list = []
+                # pr_50 = precision_recall(gt_list, pred_list, conf_list, 0.5, "box")
+                # df.loc[(image_name,classe),('Object detection','Precision@50')] = pr_50[0]
+                # df.loc[(image_name,classe),('Object detection','Recall@50')] = pr_50[1]
+                # pr_75 = precision_recall(gt_list, pred_list, conf_list, 0.75, "box")
+                # df.loc[(image_name,classe),('Object detection','Precision@75')] = pr_75[0]
+                # df.loc[(image_name,classe),('Object detection','Recall@75')] = pr_75[1]
+                # df.loc[(image_name,classe),('Object detection','Ti')] = detections[image_name]['Start']
+                # df.loc[(image_name,classe),('Object detection','Tf')] = detections[image_name]['End']
+        # Drivable area
+        new_name = image_name.split('.')[0] + '.png'
+        gt_mask = cv2.imread(str(curr_path / gt_path/'drivable/masks/val'/ new_name))
+        gt_mask = (gt_mask != np.max(gt_mask)) * 255
+        gt_mask = gt_mask.astype(np.uint8)
+        pred_mask = cv2.imread(drivable_path + '/' + new_name)
+        iou = IoU_mask(gt_mask, pred_mask)
+        df.loc[(image_name,'Drivable'),('Drivable area','IoU')] = iou
+        df.loc[(image_name,'Drivable'),('Drivable area','Ti')] = drivable[image_name]['Start']
+        df.loc[(image_name,'Drivable'),('Drivable area','Tf')] = drivable[image_name]['End']
 
-    # cv2.imshow('teste', gt_mask)
-    # cv2.waitKey(0)
+        # Lane Marking
+        gt_mask = cv2.imread(str(curr_path / gt_path/'lane/colormaps/val'/ new_name))
+        gt_mask = (gt_mask != 0) * 255
+        gt_mask = gt_mask.astype(np.uint8)
+        pred_mask = cv2.imread(lane_path + '/' + new_name)
+        iou = IoU_mask(gt_mask, pred_mask)
+        df.loc[(image_name,'Lane'),('Lane marking','IoU')] = iou
+        df.loc[(image_name,'Lane'),('Lane marking','Ti')] = lane[image_name]['Start']
+        df.loc[(image_name,'Lane'),('Lane marking','Tf')] = lane[image_name]['End']
+
+        # cv2.imshow('teste', gt_mask)
+        # cv2.waitKey(0)
 
 
-classes_list = [*set([df.index[x][1][:] for x in range(len(df.index))])]
-classes_list.remove('Lane')
-classes_list.remove('Drivable')
-columns_Resume = pd.MultiIndex.from_tuples([('Object detection','AP@50'),('Object detection','AP@75'),#('Object detection','Ti'),('Object detection','Tf'),
-                                            ('Drivable area','IoU'),#('Drivable area','Ti'),('Drivable area','Tf'),
-                                            ('Lane marking','IoU')#,('Lane marking','Ti'),('Lane marking','Tf')
-                                            ])
-df2 = pd.DataFrame(columns=columns_Resume)
+    classes_list = [*set([df.index[x][1][:] for x in range(len(df.index))])]
+    classes_list.remove('Lane')
+    classes_list.remove('Drivable')
+    columns_Resume = pd.MultiIndex.from_tuples([('Object detection','AP@50'),('Object detection','AP@75'),#('Object detection','Ti'),('Object detection','Tf'),
+                                                ('Drivable area','IoU'),#('Drivable area','Ti'),('Drivable area','Tf'),
+                                                ('Lane marking','IoU')#,('Lane marking','Ti'),('Lane marking','Tf')
+                                                ])
+    df2 = pd.DataFrame(columns=columns_Resume)
 
-for classe in classes_list:
+    for classe in classes_list:
+        for tresh in ['50', '75']:
+            # Get precision and recall values
+            p_50 = df.loc[(slice(None), classe),('Object detection','Precision@'+tresh)].tolist()
+            r_50 = df.loc[(slice(None), classe),('Object detection','Recall@'+tresh)].tolist()
+            # Organize by recall order
+            r_50, p_50 = zip(*sorted(zip(r_50, p_50)))
+            # Get average precision
+            ap = 0
+            for idx in range(len(p_50)):
+                if idx>=1:
+                    ap += (r_50[idx]-r_50[idx-1])*p_50[idx]
+            df2.loc[(classe),('Object detection','AP@'+tresh)] = ap
+
+
+    lane_iou = np.average(df.loc[(slice(None), 'Lane'),('Lane marking','IoU')].tolist())
+    df2.loc[('Lane'),('Lane marking','IoU')] = lane_iou
+    drivable_iou = np.average(df.loc[(slice(None), 'Drivable'),('Drivable area','IoU')].tolist())
+    df2.loc[('Drivable'),('Drivable area','IoU')] = drivable_iou
+
+    columns_Resume = pd.MultiIndex.from_tuples([('Object detection','mAP@50'),('Object detection','mAP@75'),#('Object detection','Ti'),('Object detection','Tf'),
+                                                ('Drivable area','mIoU'),#('Drivable area','Ti'),('Drivable area','Tf'),
+                                                ('Lane marking','mIoU')#,('Lane marking','Ti'),('Lane marking','Tf')
+                                                ])
+    df3 = pd.DataFrame(columns=columns_Resume)
+
     for tresh in ['50', '75']:
-        # Get precision and recall values
-        p_50 = df.loc[(slice(None), classe),('Object detection','Precision@'+tresh)].tolist()
-        r_50 = df.loc[(slice(None), classe),('Object detection','Recall@'+tresh)].tolist()
-        # Organize by recall order
-        r_50, p_50 = zip(*sorted(zip(r_50, p_50)))
-        # Get average precision
-        ap = 0
-        for idx in range(len(p_50)):
-            if idx>=1:
-                ap += (r_50[idx]-r_50[idx-1])*p_50[idx]
-        df2.loc[(classe),('Object detection','AP@'+tresh)] = ap
+        ap_values = np.asarray(df2[('Object detection','AP@'+tresh)].tolist())
+        ii = ~np.isnan(ap_values)
+        m_ap = np.average(ap_values[ii])
+        df3.loc['',('Object detection','mAP@'+tresh)] = m_ap
 
+    for t in ['Drivable area', 'Lane marking']:
+        iou_values = np.asarray(df2[(t,'IoU')].tolist())
+        ii = ~np.isnan(iou_values)
+        m_iou = np.average(iou_values[ii])
+        df3.loc['',(t,'mIoU')] = m_iou
 
-lane_iou = np.average(df.loc[(slice(None), 'Lane'),('Lane marking','IoU')].tolist())
-df2.loc[('Lane'),('Lane marking','IoU')] = lane_iou
-drivable_iou = np.average(df.loc[(slice(None), 'Drivable'),('Drivable area','IoU')].tolist())
-df2.loc[('Drivable'),('Drivable area','IoU')] = drivable_iou
-
-columns_Resume = pd.MultiIndex.from_tuples([('Object detection','mAP@50'),('Object detection','mAP@75'),#('Object detection','Ti'),('Object detection','Tf'),
-                                            ('Drivable area','mIoU'),#('Drivable area','Ti'),('Drivable area','Tf'),
-                                            ('Lane marking','mIoU')#,('Lane marking','Ti'),('Lane marking','Tf')
-                                            ])
-df3 = pd.DataFrame(columns=columns_Resume)
-
-for tresh in ['50', '75']:
-    ap_values = np.asarray(df2[('Object detection','AP@'+tresh)].tolist())
-    ii = ~np.isnan(ap_values)
-    m_ap = np.average(ap_values[ii])
-    df3.loc['',('Object detection','mAP@'+tresh)] = m_ap
-
-for t in ['Drivable area', 'Lane marking']:
-    iou_values = np.asarray(df2[(t,'IoU')].tolist())
-    ii = ~np.isnan(iou_values)
-    m_iou = np.average(iou_values[ii])
-    df3.loc['',(t,'mIoU')] = m_iou
-
-with pd.ExcelWriter('output.xlsx') as writer:
-    df3.to_excel(writer, sheet_name='Results')
-    df2.to_excel(writer, sheet_name='ByClass')
-    df.to_excel(writer, sheet_name='Raw')   
+    with pd.ExcelWriter('output.xlsx') as writer:
+        df3.to_excel(writer, sheet_name='Results')
+        df2.to_excel(writer, sheet_name='ByClass')
+        df.to_excel(writer, sheet_name='Raw')   
 

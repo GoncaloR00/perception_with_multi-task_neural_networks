@@ -7,3 +7,5 @@ Inference/inference_eval/src/raw/
 *.torchscript
 *.engine
 Inference/inference_eval/src/YolopV2
+Inference/inference_eval/src/MultiModel
+Inference/inference_eval/src/SingleModel
