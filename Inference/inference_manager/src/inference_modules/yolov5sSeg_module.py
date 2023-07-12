@@ -20,6 +20,9 @@ with open(mod_path / 'bdd100k.yaml') as f:
 
 dataset_converter = coco2bdd100k("semantic segmentation")
 
+model_loader_name = "torchscript_cuda_half"
+model_img_size = (384, 640)
+
 # image dimensions in the format (height, width)
 
 def output_organizer(original_output, original_img_size, model_img_size):
@@ -71,7 +74,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
     detections = None
     return detections, segmentations
 
-def transforms(image, cuda:bool, device):
+def transforms(image, cuda:bool, device, half):
     """This function transforms the input image into a format compatible with
     the model.
     
@@ -81,7 +84,6 @@ def transforms(image, cuda:bool, device):
         device: Device name (cpu/cuda/cuda1, etc) - handled by inference_class"""
     
     original_img_size = (image.shape[0],image.shape[1])
-    model_img_size = (384, 640)
     img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, (model_img_size[1], model_img_size[0]))
     img = np.ascontiguousarray(img, dtype=np.float32)
@@ -91,6 +93,7 @@ def transforms(image, cuda:bool, device):
         img = img[None]
     img.permute(0, 2, 3, 1) 
     img = img.to(device)
-    img = img.half()
+    if half:
+        img = img.half()
 
     return img, original_img_size, model_img_size

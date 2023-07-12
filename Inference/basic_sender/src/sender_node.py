@@ -25,6 +25,7 @@ rospy.init_node('sender', anonymous=False)
 while(cap.isOpened() and not rospy.is_shutdown()):
     # Capture frame-by-frame
     ret, frame = cap.read()
+    # cv2.imwrite('/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/frame.png', frame)
     if ret == True:
       image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
       image_message.header.stamp = rospy.Time.now()

@@ -21,6 +21,9 @@ with open(mod_path / 'bdd100k.yaml') as f:
     for name in data['object detection']:
         det_classes.append(data['object detection'][name])
 
+model_img_size = (384, 640)
+model_loader_name = "torchscript_cuda_half"
+
 def output_organizer(original_output, original_img_size, model_img_size):
     """This function receives the output from the inference and organizes the
      data to a specific format.
@@ -68,7 +71,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
 
     return (det2d_class_list, det2d_list), (seg_classes, seg_list, "panoptic")
 
-def transforms(image, cuda:bool, device):
+def transforms(image, cuda:bool, device, half):
     """This function transforms the input image into a format compatible with
     the model.
     
@@ -85,11 +88,11 @@ def transforms(image, cuda:bool, device):
     img = np.ascontiguousarray(img)
 
     img = torch.from_numpy(img).to(device)
-    img = img.half() if cuda else img.float()  # uint8 to fp16/32
+    img = img.half() if half else img # uint8 to fp16/32
     img /= 255.0  # 0 - 255 to 0.0 - 1.0
 
     if img.ndimension() == 3:
         img = img.unsqueeze(0)
     original_img_size = (img0.shape[0],img0.shape[1])
-    model_img_size = (384, 640)
+    # model_img_size = (384, 640)
     return img, original_img_size, model_img_size

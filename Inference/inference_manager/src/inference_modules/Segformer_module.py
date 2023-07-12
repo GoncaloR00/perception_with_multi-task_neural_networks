@@ -16,6 +16,8 @@ with open(mod_path / 'bdd100k.yaml') as f:
     for name in data['semantic segmentation']:
         seg_classes_name.append(data['semantic segmentation'][name])
 
+model_img_size = (512, 1024)
+model_loader_name = "torchscript_cuda"
 
 def output_organizer(original_output, original_img_size, model_img_size):
     time_a = time.time()
@@ -40,14 +42,14 @@ def output_organizer(original_output, original_img_size, model_img_size):
     detections = None
     return detections, segmentations
 
-def transforms(image, cuda:bool, device):
+def transforms(image, cuda:bool, device, half):
     original_img_size = (image.shape[0],image.shape[1])
-    model_img_size = (512, 1024)
     img_0 = copy.deepcopy(image)
     img_0 = cv2.resize(img_0, (model_img_size[1], model_img_size[0]))
     img = torch.Tensor(img_0).permute(2, 0, 1)
     img = img/255
     img = img.unsqueeze(0)
     img = img.to(device)
-
+    if half:
+        img = img.half()
     return img, original_img_size, model_img_size

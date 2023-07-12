@@ -9,7 +9,7 @@ import json
 import pandas as pd
 import cv2
 
-n_images = 15
+n_images = 199
 preds_path = 'YolopV2/labels/'
 det_filename = 'bboxes.json'
 gt_path = 'bdd100k/labels'
@@ -305,7 +305,7 @@ for t in ['Drivable area', 'Lane marking']:
     df3.loc['',(t,'mIoU')] = m_iou
 
 with pd.ExcelWriter('output.xlsx') as writer:
-    df.to_excel(writer, sheet_name='Raw')   
-    df2.to_excel(writer, sheet_name='ByClass')
     df3.to_excel(writer, sheet_name='Results')
+    df2.to_excel(writer, sheet_name='ByClass')
+    df.to_excel(writer, sheet_name='Raw')   
 

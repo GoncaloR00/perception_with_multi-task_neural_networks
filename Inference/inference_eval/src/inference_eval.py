@@ -16,7 +16,7 @@ import math
 import os
 import json
 
-n_images = 20
+n_images = 200
 topic = '/cameras/evaluation'
 curr_path = Path(__file__).parent
 

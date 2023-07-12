@@ -19,6 +19,8 @@ with open(mod_path / 'bdd100k.yaml') as f:
         det_classes.append(data['object detection'][name])
 
 # image dimensions in the format (height, width)
+model_img_size = (640, 640)
+model_loader_name = "torchscript_cuda_half"
 
 def output_organizer(original_output, original_img_size, model_img_size):
     """This function receives the output from the inference and organizes the
@@ -68,7 +70,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
 
     return (det2d_class_list, det2d_list), segmentations
 
-def transforms(image, cuda:bool, device):
+def transforms(image, cuda:bool, device, half):
     """This function transforms the input image into a format compatible with
     the model.
     
@@ -78,7 +80,7 @@ def transforms(image, cuda:bool, device):
         device: Device name (cpu/cuda/cuda1, etc) - handled by inference_class"""
     
     original_img_size = (image.shape[0],image.shape[1])
-    model_img_size = (640, 640)
+    
     # model_img_size = (640, 640)
     img = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, (model_img_size[1], model_img_size[0]))
@@ -89,6 +91,7 @@ def transforms(image, cuda:bool, device):
         img = img[None]
     img.permute(0, 2, 3, 1) 
     img = img.to(device)
-    img = img.half()
+    if half:
+        img = img.half()
 
     return img, original_img_size, model_img_size
