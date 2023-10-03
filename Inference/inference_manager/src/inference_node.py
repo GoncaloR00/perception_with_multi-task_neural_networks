@@ -32,16 +32,18 @@ class InferenceNode:
         self.segmentation_pub = rospy.Publisher(topic_segmentation,segmentation, queue_size=10)
         self.bridge = CvBridge()
         self.first_run = True
+        self.inference_ready = False
         self.infer_function_name = infer_function_name
         self.model_path = model_path
 
     def InferenceCallback(self,msg):
         if self.first_run:
-            image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-            print(image.shape)
-            self.inference = Inference(self.model_path, self.infer_function_name, image)
             self.first_run = False
-        else:
+            image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
+            self.inference = Inference(self.model_path, self.infer_function_name, image)
+            self.inference_ready = True
+            
+        elif self.inference_ready:
             print("A fazer algo!")
             time_a = time.time()
             time_source = msg.header.stamp

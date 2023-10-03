@@ -22,8 +22,19 @@ class Inference:
         model_loader_name = self.output_function.model_loader_name
         model_loader = importlib.import_module('model_loaders.' + model_loader_name)
         self.original_img_size = (sample_image.shape[0], sample_image.shape[1])
-        self.model, self.cuda, self.half, self.engine = model_loader.load(self.original_img_size, self.model_img_size, model_path)
-
+        self.model, self.cuda, self.half, self.engine, self.framework = model_loader.load(self.original_img_size, self.model_img_size, model_path)
+        if self.framework == 'torch':
+            self.model.eval()
+            self.infer = self.infer_torch
+        elif self.framework == 'torch_tensorrt':
+            import torch_tensorrt
+            self.model.eval()
+            self.infer = self.infer_torch
+        elif self.framework == 'polygraphy':
+            from polygraphy.backend.trt import TrtRunner
+            self.infer = self.infer_polygraphy
+        else:
+            print('\033[1;31;48m' + "Invalid framework! Aborting..." + '\033[1;37;0m')
         # Check if CUDA is available
         if self.cuda:
             if torch.cuda.is_available():
@@ -34,7 +45,6 @@ class Inference:
             self.device = 'cpu'
         print(f"Using device: {self.device}")
       
-        self.model.eval()
     
     def load_image(self, image):
         time_a = time.time()
@@ -43,7 +53,7 @@ class Inference:
         print(f"Carregamento da imagem: {time_b-time_a}")
 
 
-    def infer(self):
+    def infer_torch(self):
         time_a = time.time()
         with torch.no_grad():
             outputs = self.model(self.transformed_image)
@@ -51,3 +61,14 @@ class Inference:
         organized_outputs = self.output_function.output_organizer(outputs, self.original_img_size, self.model_img_size)
         print(f"Tempo de inferência: {time_b-time_a}")
         return organized_outputs
+    
+    def infer_polygraphy(self):
+        from polygraphy.backend.trt import TrtRunner
+        time_a = time.time()
+        with TrtRunner(self.model) as runner:
+            outputs = runner.infer(feed_dict={'images': self.transformed_image})
+        time_b = time.time()
+        organized_outputs = self.output_function.output_organizer(outputs, self.original_img_size, self.model_img_size)
+        print(f"Tempo de inferência: {time_b-time_a}")
+        return organized_outputs
+

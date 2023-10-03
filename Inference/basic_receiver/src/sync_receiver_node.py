@@ -165,7 +165,7 @@ if __name__ == '__main__':
                                         counter += 10
                                     image[:,:,0][mask>threshold_instance] = color
                                     image[:,:,1][mask>threshold_instance] = 255
-                        
+
                         # # Colors distributed by classes
                         # if len(teste.instance[key])>0:
                         #     color_range = semantic_cls[key][1] - semantic_cls[key][0]
@@ -194,6 +194,12 @@ if __name__ == '__main__':
                                     counter += 1
                                 image[:,:,0][mask>threshold_instance] = color
                                 image[:,:,1][mask>threshold_instance] = 120
+
+                                # image[:,:,0][mask>threshold_instance] = 84
+                                # image[:,:,1][mask>threshold_instance] = 255
+                                # image[:,:,2][mask>threshold_instance] = 255
+                                
+                                
 
                 image = cv2.cvtColor(image, cv2.COLOR_HSV2BGR)
             # toc = timeit.default_timer()

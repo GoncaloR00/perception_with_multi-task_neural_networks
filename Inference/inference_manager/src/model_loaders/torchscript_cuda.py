@@ -6,4 +6,5 @@ def load(original_img_size, model_img_size, model_path):
     cuda = 1
     half = 0
     engine = 0
-    return model, cuda, half, engine
+    framework = 'torch'
+    return model, cuda, half, engine, framework

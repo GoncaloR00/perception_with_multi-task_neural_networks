@@ -10,15 +10,16 @@ model_loader_name = "resa_34_culane_cuda_half"
 img_height= 288
 img_width = 800
 divider = 3
+divider = 2
 
 def output_organizer(original_output, original_img_size, model_img_size):
     ori_img_h, ori_img_w = original_img_size
     val = ori_img_h - int(ori_img_w / divider) # For video
-    val = 0 # For evaluation
+    # val = 0 # For evaluation
     ori_img_h = ori_img_h - val
     # ori_img_h= 540 - 240
     # ori_img_w = 960
-    sample_y=range(ori_img_h-2, 0, -10)
+    sample_y=range(ori_img_h-2, 0, -20)
     sample_y2=range(ori_img_h-2, 0, -1)
     time_a = time.time()
     lanes_a=get_lanes(original_output, ori_img_h, ori_img_w, sample_y)
@@ -32,7 +33,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
                     continue
                 x, y = int(x), int(y)
                 # 700 e 15 -> transformar em relação a tamanho
-                tik = int(y**1.5/500)
+                tik = int(y**1.5/650)
                 if tik > 25:
                     tik = 25
                 if tik < 0:
@@ -56,7 +57,7 @@ def transforms(image, cuda:bool, device, half):
     original_img_size = (image.shape[0],image.shape[1])
     ori_img_h, ori_img_w = original_img_size
     val = ori_img_h - int(ori_img_w / divider) # For video
-    val = 0 # For evaluation
+    # val = 0 # For evaluation
     img_0 = copy.deepcopy(image)
     img_0 = cv2.resize(img_0[val:], (model_img_size[1], model_img_size[0]))
     img = torch.Tensor(img_0)

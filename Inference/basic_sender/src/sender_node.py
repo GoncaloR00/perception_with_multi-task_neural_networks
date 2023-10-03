@@ -39,7 +39,7 @@ cv2.destroyAllWindows()
 
 # # TEMPORARIO
 
-# frame = cv2.imread("/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/example1.jpg")
+# frame = cv2.imread("/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/b2de6f59-9f74dea1.jpg")
 # while (not rospy.is_shutdown()):
 #   image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
 #   image_message.header.stamp = rospy.Time.now()
