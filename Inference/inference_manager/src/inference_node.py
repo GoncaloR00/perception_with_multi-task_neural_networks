@@ -12,7 +12,7 @@ import time
 # max_time = 
 
 class InferenceNode:
-    def __init__(self, infer_function_name:str, model_path:str, source:str):
+    def __init__(self, infer_function_name:str, model_path:str, model_loader:str, source:str):
         # ---------------------------------------------------
         #   Model and inference module
         # ---------------------------------------------------
@@ -34,13 +34,14 @@ class InferenceNode:
         self.first_run = True
         self.inference_ready = False
         self.infer_function_name = infer_function_name
+        self.model_loader = model_loader
         self.model_path = model_path
 
     def InferenceCallback(self,msg):
         if self.first_run:
             self.first_run = False
             image = self.bridge.imgmsg_to_cv2(msg, desired_encoding='passthrough')
-            self.inference = Inference(self.model_path, self.infer_function_name, image)
+            self.inference = Inference(self.model_path, self.infer_function_name, self.model_loader, image)
             self.inference_ready = True
             
         elif self.inference_ready:
@@ -119,6 +120,10 @@ if __name__ == '__main__':
                         dest='model_path', required=True, 
                         help='Model directory')
     
+    parser.add_argument('-ml', '--model_loader', type=str, 
+                        dest='model_loader', required=True, 
+                        help='Name of the module that loads the model')
+    
     parser.add_argument('-sr', '--source', type=str, 
                         dest='source', required=True, 
                         help='Topic with the image messages to process')
@@ -128,6 +133,7 @@ if __name__ == '__main__':
     rospy.init_node('inference_node', anonymous=False)
     teste = InferenceNode(infer_function_name = args['infer_function'], 
                           model_path = args['model_path'], 
+                          model_loader = args['model_loader'],
                           source = args['source']
                           )
     # rospy.init_node('inference_node', anonymous=False)

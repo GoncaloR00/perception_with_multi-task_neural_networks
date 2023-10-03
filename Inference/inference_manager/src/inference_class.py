@@ -14,12 +14,12 @@ import time
 
 
 class Inference:
-    def __init__(self, model_path:str, infer_function_name:str, sample_image):
+    def __init__(self, model_path:str, infer_function_name:str, model_loader_name:str, sample_image):
         # Get output reorganizer class name and import
         class_name = 'inference_modules.' + infer_function_name
         self.output_function = importlib.import_module(class_name)
         self.model_img_size = self.output_function.model_img_size
-        model_loader_name = self.output_function.model_loader_name
+        # model_loader_name = self.output_function.model_loader_name
         model_loader = importlib.import_module('model_loaders.' + model_loader_name)
         self.original_img_size = (sample_image.shape[0], sample_image.shape[1])
         self.model, self.cuda, self.half, self.engine, self.framework = model_loader.load(self.original_img_size, self.model_img_size, model_path)
