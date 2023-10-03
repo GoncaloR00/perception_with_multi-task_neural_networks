@@ -17,7 +17,6 @@ with open(mod_path / 'bdd100k.yaml') as f:
         seg_classes_name.append(data['semantic segmentation'][name])
 
 model_img_size = (512, 512)
-model_loader_name = "torchscript_cuda"
 
 def output_organizer(original_output, original_img_size, model_img_size):
     detections = None
@@ -35,7 +34,6 @@ def output_organizer(original_output, original_img_size, model_img_size):
         segmentations = None
     else:
         segmentations = (seg_classes, seg_list, "semantic")
-    print(seg_list)
     return detections, segmentations
 
 def transforms(image, cuda:bool, device, half):

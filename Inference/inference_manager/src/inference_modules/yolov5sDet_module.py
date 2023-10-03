@@ -19,7 +19,6 @@ with open(mod_path / 'bdd100k.yaml') as f:
         det_classes.append(data['object detection'][name])
 
 model_img_size = (384, 640)
-model_loader_name = "torchscript_cuda_half"
 
 # image dimensions in the format (height, width)
 

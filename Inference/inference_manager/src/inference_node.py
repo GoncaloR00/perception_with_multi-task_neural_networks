@@ -136,5 +136,4 @@ if __name__ == '__main__':
                           model_loader = args['model_loader'],
                           source = args['source']
                           )
-    # rospy.init_node('inference_node', anonymous=False)
     rospy.spin()

@@ -17,8 +17,6 @@ with open(mod_path / 'bdd100k.yaml') as f:
         det_classes.append(data['object detection'][name])
 
 model_img_size = (640, 640)
-model_loader_name = "polygraphy"
-print(det_classes)
 
 # image dimensions in the format (height, width)
 
@@ -77,9 +75,9 @@ def transforms(image, cuda:bool, device, half):
     img = img.permute(2,0,1)
     img = img.unsqueeze(0)
     img = img/255
-    if half:
-        img = img.half
     img = img.numpy()
+    if half:
+        img = img.astype(np.float16)
     """This function transforms the input image into a format compatible with
     the model.
     
