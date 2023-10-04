@@ -40,7 +40,7 @@ def transforms(image, cuda:bool, device, half):
     original_img_size = (image.shape[0],image.shape[1])
     img = copy.deepcopy(image)
     img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
-    img = cv2.resize(img, model_img_size)
+    img = cv2.resize(img, (512, 512))
     img = img/255
     # mean = np.mean(img, axis=(0, 1))
     # std = np.std(img, axis=(0, 1))
@@ -60,7 +60,6 @@ def transforms(image, cuda:bool, device, half):
     img = img.unsqueeze(0)
     img = img.float()
     img = img.to(device)
-    
     if half:
         img = img.half()
     return img, original_img_size, model_img_size

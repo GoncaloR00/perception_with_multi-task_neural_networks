@@ -12,8 +12,11 @@
     <arg name="ml_polygraphy_fp16" default="polygraphy_half"/>
     <arg name="ml_torchscript_fp32" default="torchscript_cuda"/>
     <arg name="ml_torchscript_fp16" default="torchscript_cuda_half"/>
+    <arg name="ml_torchtrt_fp16" default="torch_tensorrt_half"/>
+    <arg name="ml_torchtrt_fp32" default="torch_tensorrt_float32"/>
     <arg name="resa_fp16" default="resa_34_culane_cuda_half"/>
     <arg name="resa_fp32" default="resa_34_culane_cuda"/>
+
     <!-- Models -->
     <!-- YolopV2 -->
     <arg name="fn_yolopv2" default="yolopv2_module"/>
@@ -21,7 +24,8 @@
     <!-- YoloV5 -->
     <arg name="fn_yolov5_det" default="yolov5sDet_module"/>
     <arg name="mp_yolov5s_det" default="$(find inference_manager)/../../models/yolov5s.torchscript"/>
-    <arg name="mp_yolov5s_det_engine" default="$(find inference_manager)/../../models/teste2.trt"/>
+    <arg name="mp_yolov5s_trtfp16" default="$(find inference_manager)/../../models/yolov5s_trtfp16.trt"/>
+    <arg name="mp_yolov5s_trtfp32" default="$(find inference_manager)/../../models/yolov5s_trtfp32.trt"/>
     <!-- YoloV5 -seg -->
     <arg name="fn_yolov5_seg" default="yolov5sSeg_module"/>
     <arg name="mp_yolov5s_seg" default="$(find inference_manager)/../../models/yolov5s-seg.torchscript"/>
@@ -31,14 +35,33 @@
     <!-- Segformer -->
     <arg name="fn_segformer" default="Segformer_hf_module"/>
     <arg name="mp_segformer" default="$(find inference_manager)/../../models/segformer_b0_cityscapes.torchscript"/>
+    <arg name="fn_segformer_trt" default="Segformer_trt_module"/>
+    <arg name="mp_segformer_trt_fp32" default="$(find inference_manager)/../../models/segformer_fp32.engine"/>
+    <arg name="mp_segformer_trt_fp16" default="$(find inference_manager)/../../models/segformer_half.engine"/>
     <!-- YoloV8 -->
     <arg name="fn_yolov8_trt" default="yolov8_trt_module"/>
-    <arg name="mp_yolov8_trtfp16" default="$(find inference_manager)/../../models/yolov8s_half.engine"/>
-    <arg name="mp_yolov8_trtfp32" default="$(find inference_manager)/../../models/yolov8s_float32.engine"/>
-
+    <arg name="fn_yolov8" default="yolov8_module"/>
+    <arg name="mp_yolov8s_trtfp16" default="$(find inference_manager)/../../models/yolov8s_half.engine"/>
+    <arg name="mp_yolov8s_trtfp32" default="$(find inference_manager)/../../models/yolov8s_float32.engine"/>
+    <arg name="mp_yolov8s_fp32" default="$(find inference_manager)/../../models/yolov8s.torchscript"/>
+    <!-- YoloV7 -->
+    <arg name="fn_yolov7" default="yolov7_module"/>
+    <arg name="mp_yolov7" default="$(find inference_manager)/../../models/yolov7.torchscript"/>
+    <arg name="mp_yolov7_trtfp16" default="$(find inference_manager)/../../models/yolov7_half.engine"/>
+    <arg name="mp_yolov7_trtfp32" default="$(find inference_manager)/../../models/yolov7_float_try2.engine"/>
     <!-- Resa34 Culane -->
     <arg name="fn_resa34culane" default="resa34culane_module"/>
     <arg name="mp_resa34culane" default="$(find inference_manager)/../../models/resa_r34_culane.pth"/>
+    <!-- Mask2former -->
+    <arg name="fn_mask2former" default="mask2former_module"/>
+    <arg name="mp_mask2former" default="$(find inference_manager)/../../models/mask2former.torchscript"/>
+    <arg name="mp_mask2former_fp16" default="$(find inference_manager)/../../models/mask2former_half.torchscript"/>
+    <!-- UperNet + Convnext -->
+    <arg name="fn_upernet" default="upernet_module"/>
+    <arg name="mp_upernet" default="$(find inference_manager)/../../models/upernet.torchscript"/>
+    <arg name="mp_upernet_fp16" default="$(find inference_manager)/../../models/upernet_half.torchscript"/>
+
+
 <!-- ####################################################################### -->
 <!-- ############################### Nodes ################################# -->
 <!-- ####################################################################### -->
@@ -55,25 +78,68 @@
     </group> -->
 
 
-    <!-- <group ns='frontcamera/yolov5-fp16'>
+    <!-- <group ns='frontcamera/yolov5s-fp16'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
     </group> -->
 
-    <!-- <group ns='frontcamera/yolov5-fp32'>
+    <!-- <group ns='frontcamera/yolov5s-fp32'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
     </group> -->
 
-    <!-- <group ns='frontcamera/yolov8-fp32-trt'>
+    <!-- <group ns='frontcamera/yolov5s-fp16-trt'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
-        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8_trt) -mp $(arg mp_yolov8_trtfp32) -ml $(arg ml_polygraphy_fp32) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_trtfp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)"/>
     </group> -->
 
-    <!-- <group ns='frontcamera/yolov8-fp16-trt'>
+    <!-- <group ns='frontcamera/yolov5s-fp32-trt'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
-        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8_trt) -mp $(arg mp_yolov8_trtfp16) -ml $(arg ml_polygraphy_fp16) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_trtfp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)"/>
     </group> -->
+
+    <!-- <group ns='frontcamera/yolov8s-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov8s-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov7-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov7) -mp $(arg mp_yolov7) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov7-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov7) -mp $(arg mp_yolov7) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/Mask2former-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_mask2former) -mp $(arg mp_mask2former) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+
+    <!-- <group ns='frontcamera/UperNet-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_upernet) -mp $(arg mp_upernet) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+
+    <!-- <group ns='frontcamera/yolov8s-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8_trt) -mp $(arg mp_yolov8s_trtfp32) -ml $(arg ml_polygraphy_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov8s-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8_trt) -mp $(arg mp_yolov8s_trtfp16) -ml $(arg ml_polygraphy_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+    
 
     <!-- <group ns='frontcamera/segformer-fp32'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
@@ -85,10 +151,49 @@
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
     </group> -->
 
+    <!-- <group ns='frontcamera/segformer-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer_trt) -mp $(arg mp_segformer_trt_fp32) -ml $(arg ml_polygraphy_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/segformer-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer_trt) -mp $(arg mp_segformer_trt_fp16) -ml $(arg ml_polygraphy_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
     <!-- <group ns='frontcamera/resa34culane-fp32'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_resa34culane) -mp $(arg mp_resa34culane) -ml $(arg resa_fp32) -sr $(arg front_camera)"/>
     </group> -->
+
+    <!-- <group ns='frontcamera/resa34culane-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_resa34culane) -mp $(arg mp_resa34culane) -ml $(arg resa_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/UperNet-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_upernet) -mp $(arg mp_upernet_fp16) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -112,15 +217,10 @@
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det_engine) -sr $(arg front_camera)"/>
     </group> -->
 
-    
-
-    
-
     <!-- <group ns='frontcamera/enet'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_enet) -mp $(arg mp_enet) -sr $(arg front_camera)"/>
-    </group> -->
-    
+    </group> -->  
     
     <!-- <group ns='frontcamera/multi-model'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
@@ -128,5 +228,29 @@
         <node pkg="inference_manager" name="inference_node_segformer" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -sr $(arg front_camera)"/>
         <node pkg="inference_manager" name="inference_node_yolov5_det" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
     </group> -->
+
+
+
+
+
+
+
+
+    <!-- <group ns='frontcamera/yolov7-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov7) -mp $(arg mp_yolov7_trtfp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov7-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov7) -mp $(arg mp_yolov7_trtfp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/Mask2former-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_mask2former) -mp $(arg mp_mask2former_fp16) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    
 
 </launch>

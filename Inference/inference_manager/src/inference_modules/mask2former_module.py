@@ -16,17 +16,21 @@ with open(mod_path / 'bdd100k.yaml') as f:
     for name in data['semantic segmentation']:
         seg_classes_name.append(data['semantic segmentation'][name])
 
-model_img_size = (512, 512)
+model_img_size = (384, 384)
 
 def output_organizer(original_output, original_img_size, model_img_size):
     detections = None
-    seg_classes = []
+    class_queries_logits = original_output[0].to('cpu')
+    masks_queries_logits = original_output[1].to('cpu')
+    masks_queries_logits = torch.nn.functional.interpolate(masks_queries_logits, size=(384, 384), mode="bilinear", align_corners=False)
+    masks_classes = class_queries_logits.softmax(dim=-1)[..., :-1]
+    masks_probs = masks_queries_logits.sigmoid()
+    segmentation = torch.einsum("bqc, bqhw -> bchw", masks_classes, masks_probs)
+    semantic_segmentation = segmentation.argmax(dim=1)
+    semantic_segmentation = semantic_segmentation.squeeze(0).numpy()
+    predicted_label = cv2.resize(semantic_segmentation.astype(np.uint8), (original_img_size[1], (original_img_size[0])))
     seg_list = []
-    logits = original_output[0]
-    logits = logits.to('cpu')
-    predicted_label = logits.argmax(1)
-    predicted_label = predicted_label.squeeze()
-    predicted_label = cv2.resize(predicted_label.numpy().astype(np.uint8), (original_img_size[1], (original_img_size[0])))
+    seg_classes = []
     for i in range(int(predicted_label.min()),int(predicted_label.max())+1):
         seg_list.append(((predicted_label == i)*255).astype(np.uint8))
         seg_classes.append(seg_classes_name[dataset_converter.convert(int(i))])
@@ -39,11 +43,8 @@ def output_organizer(original_output, original_img_size, model_img_size):
 def transforms(image, cuda:bool, device, half):
     original_img_size = (image.shape[0],image.shape[1])
     img = copy.deepcopy(image)
-    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
     img = cv2.resize(img, model_img_size)
     img = img/255
-    # mean = np.mean(img, axis=(0, 1))
-    # std = np.std(img, axis=(0, 1))
     mean = [
         0.48500001430511475,
         0.4560000002384186,
@@ -60,7 +61,6 @@ def transforms(image, cuda:bool, device, half):
     img = img.unsqueeze(0)
     img = img.float()
     img = img.to(device)
-    
     if half:
         img = img.half()
     return img, original_img_size, model_img_size

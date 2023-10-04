@@ -22,7 +22,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
     detections = None
     seg_classes = []
     seg_list = []
-    logits = original_output[0]
+    logits = torch.Tensor(original_output['output0'])
     logits = logits.to('cpu')
     predicted_label = logits.argmax(1)
     predicted_label = predicted_label.squeeze()
@@ -63,4 +63,6 @@ def transforms(image, cuda:bool, device, half):
     
     if half:
         img = img.half()
+
+    img = img.to('cpu').numpy()
     return img, original_img_size, model_img_size
