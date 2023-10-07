@@ -35,12 +35,14 @@ class Inference:
             self.infer = self.infer_polygraphy
         else:
             print('\033[1;31;48m' + "Invalid framework! Aborting..." + '\033[1;37;0m')
+            exit()
         # Check if CUDA is available
         if self.cuda:
             if torch.cuda.is_available():
                 self.device = "cuda"
             else:
                 print('\033[1;31;48m' + "CUDA NOT DETECTED! Aborting..." + '\033[1;37;0m')
+                exit()
         else:
             self.device = 'cpu'
         print(f"Using device: {self.device}")

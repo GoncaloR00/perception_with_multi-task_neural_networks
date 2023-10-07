@@ -8,9 +8,9 @@ class ade20k2bdd100k:
         mod_path = Path(__file__).parent
         with open(mod_path / 'ade20k2bdd100k.yaml') as f:
             load_data = yaml.load(f, Loader=SafeLoader)
-            print(f"Category = {self.category}")
+            # print(f"Category = {self.category}")
             self.data = load_data[self.category]
-            print(f"Data = {self.data}")
+            # print(f"Data = {self.data}")
 
     def convert(self, coco_idx:int) -> int:
         # print(self.data)

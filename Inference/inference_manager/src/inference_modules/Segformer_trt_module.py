@@ -60,7 +60,6 @@ def transforms(image, cuda:bool, device, half):
     img = img.unsqueeze(0)
     img = img.float()
     img = img.to(device)
-    
     if half:
         img = img.half()
 

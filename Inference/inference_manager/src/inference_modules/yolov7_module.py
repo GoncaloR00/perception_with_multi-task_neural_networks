@@ -46,7 +46,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
     the variable
         -To convert from numpy to the desired framework, check the framework 
     documentation"""
-    print(original_output[0])
+    print(original_output)
     output = non_max_suppression(original_output[0])
     
     output = output[0].to('cpu').numpy()

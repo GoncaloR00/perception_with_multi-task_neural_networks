@@ -22,7 +22,6 @@ with open(mod_path / 'bdd100k.yaml') as f:
         det_classes.append(data['object detection'][name])
 
 model_img_size = (384, 640)
-model_loader_name = "torchscript_cuda_half"
 
 def output_organizer(original_output, original_img_size, model_img_size):
     """This function receives the output from the inference and organizes the

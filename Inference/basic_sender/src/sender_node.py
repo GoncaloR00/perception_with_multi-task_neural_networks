@@ -13,8 +13,9 @@ topic = '/cameras/frontcamera'
 image_pub = rospy.Publisher(topic,Image, queue_size=10)
 bridge = CvBridge()
 # Create a VideoCapture object and read from input file
-cap = cv2.VideoCapture('/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/sample_qHD.mp4')
+# cap = cv2.VideoCapture('/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/sample_qHD.mp4')
 # cap = cv2.VideoCapture('/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/video2.mov')
+cap = cv2.VideoCapture('/home/gribeiro/catkin_ws/src/perception_with_multi-task_neural_networks/Inference/basic_sender/src/data/b2de6f59-9f74dea1.mov')
 # Check if camera opened successfully
 if (cap.isOpened()== False): 
   print("Error opening video stream or file")
