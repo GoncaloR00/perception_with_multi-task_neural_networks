@@ -14,8 +14,8 @@ divider = 2
 
 def output_organizer(original_output, original_img_size, model_img_size):
     ori_img_h, ori_img_w = original_img_size
-    val = ori_img_h - int(ori_img_w / divider) # For video
-    # val = 0 # For evaluation
+    # val = ori_img_h - int(ori_img_w / divider) # For video
+    val = 0 # For evaluation
     ori_img_h = ori_img_h - val
     # ori_img_h= 540 - 240
     # ori_img_w = 960
@@ -39,6 +39,9 @@ def output_organizer(original_output, original_img_size, model_img_size):
                 if tik < 0:
                     tik = 0
                 mask[val:] = cv2.circle(mask[val:], (x, y), 0, (255, 255, 255), tik)
+    # cv2.imshow('teste', mask)
+    # cv2.waitKey(0)
+    # cv2.destroyAllWindows()
     seg_list =[mask[:,:,0]]
     seg_classes = ["lane divider"]
     # else:
@@ -56,8 +59,8 @@ def output_organizer(original_output, original_img_size, model_img_size):
 def transforms(image, cuda:bool, device, half):
     original_img_size = (image.shape[0],image.shape[1])
     ori_img_h, ori_img_w = original_img_size
-    val = ori_img_h - int(ori_img_w / divider) # For video
-    # val = 0 # For evaluation
+    # val = ori_img_h - int(ori_img_w / divider) # For video
+    val = 0 # For evaluation
     img_0 = copy.deepcopy(image)
     img_0 = cv2.resize(img_0[val:], (model_img_size[1], model_img_size[0]))
     img = torch.Tensor(img_0)

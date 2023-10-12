@@ -59,6 +59,7 @@ class Inference:
         time_a = time.time()
         with torch.no_grad():
             outputs = self.model(self.transformed_image)
+        torch.cuda.synchronize()
         time_b = time.time()
         organized_outputs = self.output_function.output_organizer(outputs, self.original_img_size, self.model_img_size)
         print(f"Tempo de inferência: {time_b-time_a}")
@@ -69,6 +70,7 @@ class Inference:
         time_a = time.time()
         with TrtRunner(self.model) as runner:
             outputs = runner.infer(feed_dict={'images': self.transformed_image})
+        torch.cuda.synchronize()
         time_b = time.time()
         organized_outputs = self.output_function.output_organizer(outputs, self.original_img_size, self.model_img_size)
         print(f"Tempo de inferência: {time_b-time_a}")

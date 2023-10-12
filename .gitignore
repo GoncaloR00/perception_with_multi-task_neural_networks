@@ -1,11 +1,7 @@
 .vscode
 models/
-Inference/inference_eval/src/bdd100k/
-Inference/inference_eval/src/raw/
 *.trt
 *.pt
 *.torchscript
 *.engine
-Inference/inference_eval/src/YolopV2
-Inference/inference_eval/src/MultiModel
-Inference/inference_eval/src/SingleModel
+/Inference/inference_eval/src/*/*

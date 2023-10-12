@@ -88,10 +88,10 @@
 <!-- ####################################################################### -->
     <node pkg="basic_sender" name="image_sender" type="sender_node.py"/>
 
-    <!-- <group ns='frontcamera/yolopv2-fp32'>
+    <group ns='frontcamera/yolopv2-fp32'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolopv2) -mp $(arg mp_yolopv2) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
-    </group> -->
+    </group>
 
     <!-- <group ns='frontcamera/yolopv2-fp16'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>

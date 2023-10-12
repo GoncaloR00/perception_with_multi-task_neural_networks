@@ -19,6 +19,7 @@ with open(mod_path / 'bdd100k.yaml') as f:
 model_img_size = (512, 512)
 
 def output_organizer(original_output, original_img_size, model_img_size):
+    # print('here')
     detections = None
     seg_classes = []
     seg_list = []
@@ -28,8 +29,14 @@ def output_organizer(original_output, original_img_size, model_img_size):
     predicted_label = predicted_label.squeeze()
     predicted_label = cv2.resize(predicted_label.numpy().astype(np.uint8), (original_img_size[1], (original_img_size[0])))
     for i in range(int(predicted_label.min()),int(predicted_label.max())+1):
-        seg_list.append(((predicted_label == i)*255).astype(np.uint8))
-        seg_classes.append(seg_classes_name[dataset_converter.convert(int(i))])
+        if i==6:
+            seg_list.append(((predicted_label == i)*255).astype(np.uint8))
+            # seg_classes.append(seg_classes_name[dataset_converter.convert(int(i))])
+            seg_classes.append('road')
+    if not('road' in seg_classes):
+        seg_classes.append('road')
+        seg_list.append(np.zeros(original_img_size, dtype=np.uint8))
+    print(seg_classes)
     if len(seg_classes) == 0:
         segmentations = None
     else:

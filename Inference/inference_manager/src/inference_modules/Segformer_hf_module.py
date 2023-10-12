@@ -34,6 +34,10 @@ def output_organizer(original_output, original_img_size, model_img_size):
         segmentations = None
     else:
         segmentations = (seg_classes, seg_list, "semantic")
+    # print(f"seg classes: {seg_classes}")
+    if not('road' in seg_classes):
+        seg_classes.append('road')
+        seg_list.append(np.zeros(original_img_size, dtype=np.uint8))
     return detections, segmentations
 
 def transforms(image, cuda:bool, device, half):

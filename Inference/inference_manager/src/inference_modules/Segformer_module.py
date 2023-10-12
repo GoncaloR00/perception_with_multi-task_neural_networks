@@ -48,6 +48,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
     #     segmentations = (seg_classes, seg_list, "semantic")
 
     detections = None
+    print(f"seg classes: {seg_classes}")
     return detections, segmentations
 
 def transforms(image, cuda:bool, device, half):

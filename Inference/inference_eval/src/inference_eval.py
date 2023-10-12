@@ -20,7 +20,7 @@ import sys
 
 topic = '/cameras/evaluation'
 curr_path = Path(__file__).parent
-
+start_image = 0
 
 
 def get_color_range(data):
@@ -72,6 +72,7 @@ class Receiver:
     def detection2dCallback(self, msg):
         self.BBoxes = msg
         self.det2d_frameId = msg.frame_id
+        print('---------------------------------------------------------------------------------------------------------------------------------------------')
         self.received_det = 1
     def segmentationCallback(self, msg):
         if msg.Category.data == "panoptic":
@@ -188,82 +189,107 @@ if __name__ == '__main__':
     boxes = {}
     lanes = {}
     drivable = {}
-    pbar = tqdm(total=n_images)
-    while not(rospy.is_shutdown()) and counter < n_images:
-        new_time = time.time()
-        if ((receiver.received_det or not(mode_obj_dect)) and (receiver.received_drivable or not(mode_drivable)) and (receiver.received_lane or not(mode_lane))) or first_run:# or (image_list[counter] == receiver.det2d_frameId and image_list[counter] == receiver.semseg_frameId and image_list[counter] == receiver.panseg_frameId and image_list[counter] != "None"):
-            print(f'Saving {image_list[counter]}')
-            last_time = new_time
-            if not(first_run):
-                if mode_obj_dect:
-                    boxes[image_list[counter]] = {}
-                    boxes[image_list[counter]]['Bboxes'] = {}
-                    bbox_list = receiver.BBoxes.BBoxList
-                    bbox_classes = receiver.BBoxes.ClassList
-                    bbox_start_time = receiver.BBoxes.start_stamp
-                    bbox_end_time = receiver.BBoxes.end_stamp
-                    boxes[image_list[counter]]['Start'] = bbox_start_time.to_sec()
-                    boxes[image_list[counter]]['End'] = bbox_end_time.to_sec()
-                    for idx_cls, classe in enumerate(bbox_classes):
-                        if classe.data in boxes[image_list[counter]]['Bboxes']:
-                            boxes[image_list[counter]]['Bboxes'][classe.data].append((bbox_list[idx_cls].Px1, bbox_list[idx_cls].Py1, bbox_list[idx_cls].Px2, bbox_list[idx_cls].Py2))
-                        else:
-                            boxes[image_list[counter]]['Bboxes'][classe.data] = [(bbox_list[idx_cls].Px1, bbox_list[idx_cls].Py1, bbox_list[idx_cls].Px2, bbox_list[idx_cls].Py2)]
-                    # E se não detetar??
-                if mode_drivable:
-                    if len(receiver.panoptic["road"])>0:
-                        mask_drivable = receiver.panoptic["road"][0]
-                    else:
-                        mask_drivable = receiver.semantic["road"][0]
-                    # print(mask_drivable)
-                    drivable[image_list[counter]] = {}
-                    drivable[image_list[counter]]['Start'] = receiver.drivable_start.to_sec()
-                    drivable[image_list[counter]]['End'] = receiver.drivable_end.to_sec()
-                    #TODO mudar isto para incluir todas as mascaras!!!!
+    pbar = tqdm(total=n_images-start_image)
 
-                    # print('mask drivable')
-                    # print(mask_drivable)
-                    # cv2.imshow('teste', mask_drivable)
-                    path = save_path + 'drivable/masks/' + image_list[counter].split('.')[0] + '.png'
-                    cv2.imwrite(path, mask_drivable)
-                    # E se não detetar??
-                if mode_lane:
-                    mask_lane = receiver.panoptic["lane divider"][0]
-                    lanes[image_list[counter]] = {}
-                    lanes[image_list[counter]]['Start'] = receiver.lane_start.to_sec()
-                    lanes[image_list[counter]]['End'] = receiver.lane_end.to_sec()
-                    # print('mask lane')
-                    # print(mask_lane)
-                    cv2.imwrite(save_path + 'lane/masks/' + image_list[counter].split('.')[0] + '.png', mask_lane)
-                    # E se não detetar??
-                pbar.update(1)
-            first_run = 0
-            counter += 1
-            image_path = str(curr_path / 'bdd100k/images/100k/val' / image_list[counter])
-            frame = cv2.imread(image_path)
-            image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
-            image_message.header.stamp = rospy.Time.now()
-            image_message.header.frame_id = image_list[counter]
-            image_pub.publish(image_message)
-            receiver.reset_all()
-        elif new_time - last_time > 2:
-            print('Retrying!')
-            last_time = new_time
-            frame = cv2.imread(image_path)
-            image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
-            image_message.header.stamp = rospy.Time.now()
-            image_message.header.frame_id = image_list[counter]
-            image_pub.publish(image_message)
-            receiver.reset_all()
-        panoptic_state = isAllEmpty(receiver.panoptic)
-        a = f"Sended: {color_red}{image_list[counter]}{reset}\nSemantic: {color_red}{receiver.semseg_frameId}{reset}\nPanoptic: {color_red}{receiver.panseg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}"
-        if a != b:
-            b = a
-            print(a)
-            # print(receiver.received_det)
-            # print(receiver.received_drivable)
-            # print(receiver.received_lane)
-        time.sleep(0.1)
+    if start_image>0:
+        if mode_obj_dect:
+            try:
+                with open(str(curr_path / args['folder_name'] / 'labels/det_20'/ "bboxes.json")) as json_file:
+                    boxes = json.load(json_file)
+            except:
+                print('Error loading previous json file - Boxes')
+        if mode_drivable:
+            try:
+                with open(str(curr_path / args['folder_name'] / 'labels/drivable'/  "drivable.json")) as json_file:
+                    drivable = json.load(json_file)
+            except:
+                print('Error loading previous json file - Drivable')
+        if mode_lane:
+            try:
+                with open(str(curr_path / args['folder_name'] / 'labels/lane'/  "lane.json")) as json_file:
+                    lanes = json.load(json_file)
+            except:
+                print('Error loading previous json file - Lane marking')
+
+    counter = start_image
+    while not(rospy.is_shutdown()) and counter < n_images:
+        try:
+            new_time = time.time()
+            if ((receiver.received_det or not(mode_obj_dect)) and (receiver.received_drivable or not(mode_drivable)) and (receiver.received_lane or not(mode_lane))) or first_run:# or (image_list[counter] == receiver.det2d_frameId and image_list[counter] == receiver.semseg_frameId and image_list[counter] == receiver.panseg_frameId and image_list[counter] != "None"):
+                print(f'Saving {image_list[counter]}')
+                last_time = new_time
+                if not(first_run):
+                    if mode_obj_dect:
+                        boxes[image_list[counter]] = {}
+                        boxes[image_list[counter]]['Bboxes'] = {}
+                        bbox_list = receiver.BBoxes.BBoxList
+                        bbox_classes = receiver.BBoxes.ClassList
+                        bbox_start_time = receiver.BBoxes.start_stamp
+                        bbox_end_time = receiver.BBoxes.end_stamp
+                        boxes[image_list[counter]]['Start'] = bbox_start_time.to_sec()
+                        boxes[image_list[counter]]['End'] = bbox_end_time.to_sec()
+                        for idx_cls, classe in enumerate(bbox_classes):
+                            if classe.data in boxes[image_list[counter]]['Bboxes']:
+                                boxes[image_list[counter]]['Bboxes'][classe.data].append((bbox_list[idx_cls].Px1, bbox_list[idx_cls].Py1, bbox_list[idx_cls].Px2, bbox_list[idx_cls].Py2))
+                            else:
+                                boxes[image_list[counter]]['Bboxes'][classe.data] = [(bbox_list[idx_cls].Px1, bbox_list[idx_cls].Py1, bbox_list[idx_cls].Px2, bbox_list[idx_cls].Py2)]
+                        # E se não detetar??
+                    if mode_drivable:
+                        if len(receiver.panoptic["road"])>0:
+                            mask_drivable = receiver.panoptic["road"][0]
+                        else:
+                            mask_drivable = receiver.semantic["road"][0]
+                        # print(mask_drivable)
+                        drivable[image_list[counter]] = {}
+                        drivable[image_list[counter]]['Start'] = receiver.drivable_start.to_sec()
+                        drivable[image_list[counter]]['End'] = receiver.drivable_end.to_sec()
+                        #TODO mudar isto para incluir todas as mascaras!!!!
+
+                        # print('mask drivable')
+                        # print(mask_drivable)
+                        # cv2.imshow('teste', mask_drivable)
+                        path = save_path + 'drivable/masks/' + image_list[counter].split('.')[0] + '.png'
+                        cv2.imwrite(path, mask_drivable)
+                        # E se não detetar??
+                    if mode_lane:
+                        mask_lane = receiver.panoptic["lane divider"][0]
+                        lanes[image_list[counter]] = {}
+                        lanes[image_list[counter]]['Start'] = receiver.lane_start.to_sec()
+                        lanes[image_list[counter]]['End'] = receiver.lane_end.to_sec()
+                        # print('mask lane')
+                        # print(mask_lane)
+                        cv2.imwrite(save_path + 'lane/masks/' + image_list[counter].split('.')[0] + '.png', mask_lane)
+                        # E se não detetar??
+                    pbar.update(1)
+                first_run = 0
+                counter += 1
+                image_path = str(curr_path / 'bdd100k/images/100k/val' / image_list[counter])
+                frame = cv2.imread(image_path)
+                image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
+                image_message.header.stamp = rospy.Time.now()
+                image_message.header.frame_id = image_list[counter]
+                image_pub.publish(image_message)
+                receiver.reset_all()
+            elif new_time - last_time > 0.3:
+                print('Retrying!')
+                last_time = new_time
+                frame = cv2.imread(image_path)
+                image_message = bridge.cv2_to_imgmsg(frame, encoding="passthrough")
+                image_message.header.stamp = rospy.Time.now()
+                image_message.header.frame_id = image_list[counter]
+                image_pub.publish(image_message)
+                receiver.reset_all()
+            panoptic_state = isAllEmpty(receiver.panoptic)
+            a = f"Sended: {color_red}{image_list[counter]}{reset}\nSemantic: {color_red}{receiver.semseg_frameId}{reset}\nPanoptic: {color_red}{receiver.panseg_frameId}{reset}\nDetection: {color_red}{receiver.det2d_frameId}{reset}"
+            if a != b:
+                b = a
+                print(a)
+                # print(receiver.received_det)
+                # print(receiver.received_drivable)
+                # print(receiver.received_lane)
+            time.sleep(0.1)
+        except:
+            break
     pbar.close()
     if mode_obj_dect:
         json_bboxes = json.dumps(boxes, indent = 4) 
