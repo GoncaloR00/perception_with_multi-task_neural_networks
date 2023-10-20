@@ -270,7 +270,7 @@ if __name__ == '__main__':
                 image_message.header.frame_id = image_list[counter]
                 image_pub.publish(image_message)
                 receiver.reset_all()
-            elif new_time - last_time > 0.3:
+            elif new_time - last_time > 0.5:
                 print('Retrying!')
                 last_time = new_time
                 frame = cv2.imread(image_path)
@@ -297,12 +297,12 @@ if __name__ == '__main__':
             outfile.write(json_bboxes)
     if mode_drivable:
         json_drivable = json.dumps(drivable, indent = 4) 
-        with open(str(curr_path / args['folder_name'] / 'labels/drivable'/  "drivable.json"), "w") as outfile:
+        with open(str(curr_path / args['folder_name'] / 'labels/drivable'/ "drivable.json"), "w") as outfile:
             outfile.write(json_drivable)
 
     if mode_lane:
         json_lane = json.dumps(lanes, indent = 4) 
-        with open(str(curr_path / args['folder_name'] / 'labels/lane'/  "lane.json"), "w") as outfile:
+        with open(str(curr_path / args['folder_name'] / 'labels/lane'/ "lane.json"), "w") as outfile:
             outfile.write(json_lane)
 
 

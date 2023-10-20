@@ -15,8 +15,10 @@ import time
 threshold_semantic = 200
 threshold_instance = 235
 threshold_panoptic = 200
-fps = 0.0005
+fps = 100
 max_time = rospy.Duration.from_sec(1/fps)
+
+counter = 0
 
 def get_color_range(data):
     # Define a different color for each object class or instance
@@ -154,6 +156,7 @@ if __name__ == '__main__':
                 if not(instance_state):
                     # Colors randomly distributed
                     for key in teste.instance:
+                            # if key == 'car':
                             if len(teste.instance[key])>0:
                                 counter = 0
                                 for mask in teste.instance[key]:
@@ -162,9 +165,11 @@ if __name__ == '__main__':
                                         color = 0
                                         counter = 10
                                     else:
+                                        # counter += 40
                                         counter += 10
                                     image[:,:,0][mask>threshold_instance] = color
                                     image[:,:,1][mask>threshold_instance] = 255
+                                        # break
 
                         # # Colors distributed by classes
                         # if len(teste.instance[key])>0:
@@ -233,7 +238,12 @@ if __name__ == '__main__':
             #         cv2.imshow('carro2', teste.instance["car"][1])
             #         if len(teste.instance["car"]) > 2:
             #             cv2.imshow('carro3', teste.instance["car"][2])
+            # cv2.imwrite('/home/gribeiro/teste.png', image)
+            img = copy.deepcopy(image)
+            # cv2.imwrite('/home/gribeiro/Tese/videos_tese/Output/'+str(counter)+'.png', img)
             cv2.imshow(window_name, image)
+
+            counter += 1
             cv2.waitKey(1)
         # time_b = time.time()
         # print(f"Tempo de receção: {time_b-time_a}")

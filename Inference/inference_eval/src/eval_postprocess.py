@@ -411,6 +411,7 @@ if __name__ == '__main__':
     if mode_drivable:
         drivable_iou = np.average(df.loc[(slice(None), 'Drivable'),('Drivable area','IoU')].tolist())
         fps = np.average(1/np.subtract(np.array(df.loc[(slice(None), 'Drivable'),('Drivable area','Tf')].tolist()), np.array(df.loc[(slice(None), 'Drivable'),('Drivable area','Ti')].tolist())))
+        print(fps)
         df2.loc[('Drivable'),('Drivable area','IoU')] = drivable_iou
         df2.loc[('Drivable'),('Drivable area','FPS')] = fps
 

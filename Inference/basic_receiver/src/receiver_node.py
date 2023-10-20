@@ -65,7 +65,7 @@ void_panoptic = {key: [] for key in void_panoptic}
 
 class BasicReceiver:
     def __init__(self):
-        topic_input = '/cameras/frontcamera'
+        topic_input = '/cameras/backcamera'
         topic_detection2d = 'detection2d'
         topic_segmentation = 'segmentation'
         self.bridge = CvBridge()

@@ -5,3 +5,4 @@ models/
 *.torchscript
 *.engine
 /Inference/inference_eval/src/*/*
+*.mp4

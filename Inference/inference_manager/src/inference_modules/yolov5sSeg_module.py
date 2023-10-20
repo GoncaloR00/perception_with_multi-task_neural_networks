@@ -70,6 +70,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
     if len(seg_classes) == 0:
         segmentations = None
     else:
+        print(seg_classes)
         segmentations = (seg_classes, seg_list, "instance")
     detections = None
     return detections, segmentations

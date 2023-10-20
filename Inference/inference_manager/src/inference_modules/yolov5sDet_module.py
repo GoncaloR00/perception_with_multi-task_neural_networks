@@ -57,6 +57,7 @@ def output_organizer(original_output, original_img_size, model_img_size):
     # Returns of variables; If more outputs are needed, it is required to adapt 
     # the inference_class script. If less, the unused variables should be =None
     # print(det2d_list)
+    print('YoloV5')
     return (det2d_class_list, det2d_list), segmentations
 
 def transforms(image, cuda:bool, device, half):
