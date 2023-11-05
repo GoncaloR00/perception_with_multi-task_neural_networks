@@ -1,0 +1,61 @@
+<launch>
+
+<!-- ####################################################################### -->
+<!-- ############################# Arguments ############################### -->
+<!-- ####################################################################### -->
+
+    <!-- Image sources -->
+    <arg name="front_camera" default="/cameras/evaluation"/>
+    <arg name="n_images" default="9999"/>
+    
+
+<!-- ####################################################################### -->
+<!-- ############################### Nodes ################################# -->
+<!-- ####################################################################### -->
+
+    <!-- <group ns='frontcamera/yolov8s-fp16'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_Yolov8s-Fp16 -nimg $(arg n_images) -obj 1 -l 0 -da 0"/>
+    </group> -->
+    
+
+    <!-- <group ns='frontcamera/segformer-fp16'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_SegFormer-Fp16 -nimg $(arg n_images) -obj 0 -l 0 -da 1"/>
+    </group> -->
+
+
+    <!-- <group ns='frontcamera/ufld2-fp16-trt'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_ufld2-fp16-trt -nimg $(arg n_images) -obj 0 -l 1 -da 0"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolopv2-fp16-trt'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_YolopV2_Fp16-trt -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
+    </group> -->
+    <!-- <group ns='frontcamera/twinlite-fp16-trt'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_TwinLiteNet_Fp16-trt -nimg $(arg n_images) -obj 0 -l 1 -da 1"/>
+    </group> -->
+    
+
+
+
+
+    <group ns='frontcamera/yolopv2-fp16'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_YolopV2_Fp16 -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
+    </group>
+
+    <!-- <group ns='frontcamera/MultiModel-A'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_MultiModel-A -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
+    </group> -->
+    <!-- <group ns='frontcamera/MultiModel-A'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_MultiModel-A-TRT -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/MultiModel-B'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_MultiModel-B -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
+    </group> -->
+    <!-- <group ns='frontcamera/MultiModel-B'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn JETSON_MultiModel-B-TRT -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
+    </group> -->
+
+
+
+</launch>

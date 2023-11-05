@@ -1,0 +1,355 @@
+<launch>
+
+<!-- ####################################################################### -->
+<!-- ############################# Arguments ############################### -->
+<!-- ####################################################################### -->
+
+    <!-- Image sources -->
+    <arg name="front_camera" default="/cameras/frontcamera"/>
+    <arg name="back_camera" default="/cameras/backcamera"/>
+
+<!-- ####################################################################### -->
+<!-- ############################### Nodes ################################# -->
+<!-- ####################################################################### -->
+    <node pkg="basic_sender" name="front_camera" type="sender_node.py"/>
+    <!-- <node pkg="basic_sender" name="back_camera" type="sender_node_back.py"/> -->
+
+    <!-- <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/> -->
+
+    <!-- <group ns='frontcamera/yolopv2-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/MultiModel-B'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+    </group> -->
+    <group ns='frontcamera/yolopv2-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+    </group>
+
+
+
+
+    <!-- <group ns='frontcamera/yolopv2-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolopv2) -mp $(arg mp_yolopv2) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+
+    <!-- <group ns='frontcamera/yolov5s-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov5s-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov5s-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_trtfp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov5s-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_trtfp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov8s-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov8s-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov7-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov7) -mp $(arg mp_yolov7) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov7-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov7) -mp $(arg mp_yolov7) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/Mask2former-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_mask2former) -mp $(arg mp_mask2former) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/UperNet-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_upernet) -mp $(arg mp_upernet) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+
+    <!-- <group ns='frontcamera/yolov8s-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8_trt) -mp $(arg mp_yolov8s_trtfp32) -ml $(arg ml_polygraphy_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov8s-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8_trt) -mp $(arg mp_yolov8s_trtfp16) -ml $(arg ml_polygraphy_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+    
+
+    <!-- <group ns='frontcamera/segformer-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/segformer-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/segformer-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer_trt) -mp $(arg mp_segformer_trt_fp32) -ml $(arg ml_polygraphy_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/segformer-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer_trt) -mp $(arg mp_segformer_trt_fp16) -ml $(arg ml_polygraphy_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/resa34culane-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_resa34culane) -mp $(arg mp_resa34culane) -ml $(arg resa_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/resa34culane-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_resa34culane) -mp $(arg mp_resa34culane) -ml $(arg resa_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/UperNet-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_upernet) -mp $(arg mp_upernet_fp16) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/ufld2-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_ufld2) -mp $(arg mp_ufld2) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/ufld2-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_ufld2) -mp $(arg mp_ufld2_fp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/ufld2-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_ufld2) -mp $(arg mp_ufld2_fp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/os2former-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_os2former) -mp $(arg mp_os2former) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolop-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolop) -mp $(arg mp_yolop) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolop-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolop) -mp $(arg mp_yolop) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolop-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolop-trt) -mp $(arg mp_yolop_trtfp32) -ml $(arg ml_polygraphy_fp32) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+    <!-- <group ns='frontcamera/yolop-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolop-trt) -mp $(arg mp_yolop_trtfp16) -ml $(arg ml_polygraphy_fp16) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+    <!-- <group ns='frontcamera/yolopv2-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolopv2) -mp $(arg mp_yolopv2-trtfp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/twinlite'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+    <!-- <group ns='frontcamera/twinlite-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) 
+        -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+    <!-- <group ns='frontcamera/twinlite-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) -mp $(arg mp_twinlite-fp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+    <!-- <group ns='frontcamera/twinlite-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) -mp $(arg mp_twinlite-fp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+    
+    <!-- <group ns='frontcamera/yolov5-seg'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_seg) -mp $(arg mp_yolov5s_seg) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+
+
+
+
+
+    <!-- <group ns='frontcamera/MultiModel-B'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node2" type="inference_node.py" args="-fn $(arg fn_twinlite) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/MultiModel-B'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="yolov8" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="twinlitenet_da" type="inference_node.py" args="-fn $(arg fn_twinlite-da) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)" output="screen"/>
+        <node pkg="inference_manager" name="twinlitenet_l" type="inference_node.py" args="-fn $(arg fn_twinlite-l) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+
+    <!-- <group ns='backcamera/MultiModel-B'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="yolov8" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp16) -sr $(arg back_camera)"/>
+        <node pkg="inference_manager" name="twinlitenet_da" type="inference_node.py" args="-fn $(arg fn_twinlite-da) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp16) -sr $(arg back_camera)" output="screen"/>
+        <node pkg="inference_manager" name="twinlitenet_l" type="inference_node.py" args="-fn $(arg fn_twinlite-l) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp16) -sr $(arg back_camera)" output="screen"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov5|yolov5-seg'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node_yolov5_det" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node_yolov5_seg" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_seg) -mp $(arg mp_yolov5s_seg) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov5-seg'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node_yolov5_seg" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_seg) -mp $(arg mp_yolov5s_seg) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<!-- ***************************************************************************************************************************************************** -->
+    <!-- <group ns='frontcamera/yolov5-seg'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_seg) -mp $(arg mp_yolov5s_seg) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov5|yolov5-seg'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node_yolov5_det" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node_yolov5_seg" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_seg) -mp $(arg mp_yolov5s_seg) -sr $(arg front_camera)"/>
+    </group> -->
+    <!-- <group ns='frontcamera/yolov5'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det_engine) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/enet'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_enet) -mp $(arg mp_enet) -sr $(arg front_camera)"/>
+    </group> -->  
+    
+    <!-- <group ns='frontcamera/multi-model'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node_resa34culane" type="inference_node.py" output="screen" args="-fn $(arg fn_resa34culane) -mp $(arg mp_resa34culane) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node_segformer" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="inference_node_yolov5_det" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov5_det) -mp $(arg mp_yolov5s_det) -sr $(arg front_camera)"/>
+    </group> -->
+
+
+
+
+
+
+
+
+    <!-- <group ns='frontcamera/yolov7-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov7) -mp $(arg mp_yolov7_trtfp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolov7-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov7) -mp $(arg mp_yolov7_trtfp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/Mask2former-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_mask2former) -mp $(arg mp_mask2former_fp16) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/os2former-fp32'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_os2former) -mp $(arg mp_os2former) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+    
+    <!-- <group ns='frontcamera/ufld2-fp16'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_ufld2) -mp $(arg mp_ufld2) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+    </group> -->
+
+    <!-- <group ns='frontcamera/yolop-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolop) -mp $(arg mp_yolop_trtfp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+    <!-- <group ns='frontcamera/yolop-fp16-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolop) -mp $(arg mp_yolop_trtfp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
+
+        <!-- <group ns='frontcamera/yolov7-fp32-trt'>
+        <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
+        <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov7-trt) -mp $(arg mp_yolov7_trtfp32) -ml $(arg ml_polygraphy_fp32) -sr $(arg front_camera)"/>
+    </group> -->
+
+    
+
+</launch>

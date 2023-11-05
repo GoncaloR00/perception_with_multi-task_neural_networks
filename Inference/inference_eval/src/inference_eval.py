@@ -271,6 +271,7 @@ if __name__ == '__main__':
                 image_pub.publish(image_message)
                 receiver.reset_all()
             elif new_time - last_time > 0.5:
+            # elif new_time - last_time > 2:
                 print('Retrying!')
                 last_time = new_time
                 frame = cv2.imread(image_path)

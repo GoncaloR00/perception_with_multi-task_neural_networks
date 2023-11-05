@@ -210,10 +210,10 @@
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_ufld2) -mp $(arg mp_ufld2_fp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)"/>
     </group> -->
 
-    <!-- <group ns='frontcamera/ufld2-fp16-trt'>
+    <group ns='frontcamera/ufld2-fp16-trt'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" output="screen" args="-fn $(arg fn_ufld2) -mp $(arg mp_ufld2_fp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)"/>
-    </group> -->
+    </group>
 
     <!-- <group ns='frontcamera/os2former-fp32'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
@@ -250,11 +250,11 @@
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)" output="screen"/>
     </group> -->
-    <group ns='frontcamera/twinlite-fp16'>
+    <!-- <group ns='frontcamera/twinlite-fp16'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) 
         -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)" output="screen"/>
-    </group>
+    </group> -->
     <!-- <group ns='frontcamera/twinlite-fp32-trt'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) -mp $(arg mp_twinlite-fp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)" output="screen"/>

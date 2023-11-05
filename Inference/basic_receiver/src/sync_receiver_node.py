@@ -15,7 +15,7 @@ import time
 threshold_semantic = 200
 threshold_instance = 235
 threshold_panoptic = 200
-fps = 100
+fps = 0.001
 max_time = rospy.Duration.from_sec(1/fps)
 
 counter = 0

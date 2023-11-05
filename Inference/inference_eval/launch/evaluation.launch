@@ -276,13 +276,28 @@
         <node pkg="inference_manager" name="segformer" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
         <node pkg="inference_manager" name="ufldv2" type="inference_node.py" output="screen" args="-fn $(arg fn_ufld2) -mp $(arg mp_ufld2_fp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)"/>
     </group> -->
+    <group ns='frontcamera/MultiModel-A'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn MultiModel-A-JIT -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
+        <node pkg="inference_manager" name="yolov8" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="segformer" type="inference_node.py" output="screen" args="-fn $(arg fn_segformer) -mp $(arg mp_segformer) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="ufldv2" type="inference_node.py" output="screen" args="-fn $(arg fn_ufld2) -mp $(arg mp_ufld2) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)"/>
+    </group>
 
-    <group ns='frontcamera/MultiModel-B'>
+    <!-- <group ns='frontcamera/MultiModel-B'>
         <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn MultiModel-B -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
         <node pkg="inference_manager" name="yolov8" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
         <node pkg="inference_manager" name="twinlite_l" type="inference_node.py" args="-fn $(arg fn_twinlite-l) -mp $(arg mp_twinlite-fp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)" output="screen"/>
         <node pkg="inference_manager" name="twinlite_da" type="inference_node.py" args="-fn $(arg fn_twinlite-da) -mp $(arg mp_twinlite-fp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)" output="screen"/>
-    </group>
+    </group> -->
+
+    <!-- Ficheiros MultiModelB-TRT corrompidos!!! -->
+
+    <!-- <group ns='frontcamera/MultiModel-B'>
+        <node pkg="inference_eval" name="eval" type="inference_eval.py" output="screen" args="-fn MultiModel-B-JIT -nimg $(arg n_images) -obj 1 -l 1 -da 1"/>
+        <node pkg="inference_manager" name="yolov8" type="inference_node.py" output="screen" args="-fn $(arg fn_yolov8) -mp $(arg mp_yolov8s_fp32) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)"/>
+        <node pkg="inference_manager" name="twinlite_l" type="inference_node.py" args="-fn $(arg fn_twinlite-l) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)" output="screen"/>
+        <node pkg="inference_manager" name="twinlite_da" type="inference_node.py" args="-fn $(arg fn_twinlite-da) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp16) -sr $(arg front_camera)" output="screen"/>
+    </group> -->
 
 
 
