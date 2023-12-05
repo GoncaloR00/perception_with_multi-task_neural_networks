@@ -242,10 +242,10 @@
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolopv2) -mp $(arg mp_yolopv2-trtfp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)" output="screen"/>
     </group> -->
-    <group ns='frontcamera/yolopv2-fp16-trt'>
+    <!-- <group ns='frontcamera/yolopv2-fp16-trt'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_yolopv2) -mp $(arg mp_yolopv2-trtfp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)" output="screen"/>
-    </group>
+    </group> -->
     <!-- <group ns='frontcamera/twinlite'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) -mp $(arg mp_twinlite) -ml $(arg ml_torchscript_fp32) -sr $(arg front_camera)" output="screen"/>
@@ -259,10 +259,10 @@
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) -mp $(arg mp_twinlite-fp32) -ml $(arg ml_torchtrt_fp32) -sr $(arg front_camera)" output="screen"/>
     </group> -->
-    <group ns='frontcamera/twinlite-fp16-trt'>
+    <!-- <group ns='frontcamera/twinlite-fp16-trt'>
         <node pkg="basic_receiver" name="image_plotter" type="sync_receiver_node.py" output="screen"/>
         <node pkg="inference_manager" name="inference_node" type="inference_node.py" args="-fn $(arg fn_twinlite) -mp $(arg mp_twinlite-fp16) -ml $(arg ml_torchtrt_fp16) -sr $(arg front_camera)" output="screen"/>
-    </group>
+    </group> -->
     
     <!-- <group ns='frontcamera/yolov5-seg'>
         <node pkg="basic_receiver" name="image_plotter" type="receiver_node.py" output="screen"/>
