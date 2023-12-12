@@ -7,3 +7,4 @@ models/
 /Inference/inference_eval/src/*/*
 *.mp4
 ignore/
+!YOLOPv2.mp4

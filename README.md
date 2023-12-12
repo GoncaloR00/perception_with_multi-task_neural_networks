@@ -1,10 +1,6 @@
 <br/>
 <p align="center">
   <h3 align="center">Perception with Multi-task Neural Networks</h3>
-  <p align="center">
-    <a href="https://github.com/GoncaloR00/perception_with_multi-task_neural_networks">View Demo</a>
-    .
-  </p>
 </p>
 
 ![Issues](https://img.shields.io/github/issues/GoncaloR00/perception_with_multi-task_neural_networks) 
@@ -22,7 +18,7 @@
 
 ## About The Project
 
-![Screen Shot](docs/screenshot.png)
+![Demo Video](YOLOPv2.mp4)
 
 This GitHub repository contains the developed software in the context of my dissertation.
 The developed software was designed to interface with ROS topics for data streaming, route the data through the model for inference, and send the results through other topics.
@@ -130,5 +126,16 @@ This project contains some launch files for both evaluation and normal usage.
 * **[Gonçalo Ribeiro](https://github.com/GoncaloR00)** - *Mech. Eng. student*
 
 ## Acknowledgements
-
+* Professor Vítor Santos - University of Aveiro
+* [YOLOP](https://github.com/hustvl/YOLOP)
+* [YOLOPv2](https://github.com/CAIC-AD/YOLOPv2)
+* [TwinLiteNet](https://github.com/chequanghuy/TwinLiteNet)
+* [YOLOv5](https://github.com/ultralytics/yolov5)
 * [YOLOv7](https://github.com/WongKinYiu/yolov7)
+* [YOLOv8](https://github.com/ultralytics/ultralytics)
+* [Mask2Former](https://huggingface.co/facebook/mask2former-swin-tiny-cityscapes-semantic)
+* [SegFormer](https://huggingface.co/nvidia/segformer-b0-finetuned-cityscapes-1024-1024)
+* [UperNet + ConvxNet](https://huggingface.co/openmmlab/upernet-convnext-tiny)
+* [RESA](https://github.com/Turoad/lanedet)
+* [O2SFormer](https://github.com/zkyseu/O2SFormer)
+* [UFLDv2](https://github.com/cfzd/Ultra-Fast-Lane-Detection-v2)
