@@ -18,7 +18,7 @@
 
 ## About The Project
 
-![Demo Video](YOLOPv2.mp4)
+![Demo Video](YOLOPv2.gif)
 
 This GitHub repository contains the developed software in the context of my dissertation.
 The developed software was designed to interface with ROS topics for data streaming, route the data through the model for inference, and send the results through other topics.
